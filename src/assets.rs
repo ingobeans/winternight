@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use asefile::AsepriteFile;
 use image::EncodableLayout;
 use macroquad::prelude::*;
@@ -9,6 +11,7 @@ use crate::utils::create_camera;
 pub struct Assets {
     pub tileset: Spritesheet,
     pub map: Map,
+    pub player: AnimationsGroup,
 }
 impl Assets {
     pub fn load() -> Self {
@@ -19,6 +22,7 @@ impl Assets {
         Self {
             map: Map::new(include_str!("../assets/map.tmx"), &tileset),
             tileset,
+            player: AnimationsGroup::from_file(include_bytes!("../assets/player.ase")),
         }
     }
 }
@@ -152,10 +156,15 @@ impl Spritesheet {
     }
 }
 pub struct AnimationsGroup {
+    #[expect(dead_code)]
     pub file: AsepriteFile,
     pub animations: Vec<Animation>,
+    pub tag_names: HashMap<String, usize>,
 }
 impl AnimationsGroup {
+    pub fn get_by_name(&self, name: &str) -> &Animation {
+        &self.animations[*self.tag_names.get(name).unwrap()]
+    }
     pub fn from_file(bytes: &[u8]) -> Self {
         let ase = AsepriteFile::read(bytes).unwrap();
         let mut frames = Vec::new();
@@ -175,8 +184,11 @@ impl AnimationsGroup {
         let mut tag_frames = Vec::new();
         let mut offset = 0;
 
+        let mut tag_names = HashMap::new();
+
         for i in 0..ase.num_tags() {
             let tag = ase.get_tag(i).unwrap();
+            tag_names.insert(tag.name().to_string(), i as usize);
             let (start, end) = (tag.from_frame() as usize, tag.to_frame() as usize);
             let mut total_length = 0;
             let included_frames: Vec<(Texture2D, u32)> = frames
@@ -194,6 +206,7 @@ impl AnimationsGroup {
         Self {
             file: ase,
             animations: tag_frames,
+            tag_names,
         }
     }
 }
