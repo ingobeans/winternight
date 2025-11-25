@@ -2,6 +2,8 @@ use asefile::AsepriteFile;
 use image::EncodableLayout;
 use macroquad::prelude::*;
 
+use crate::utils::create_camera;
+
 // hello!
 
 pub struct Assets {
@@ -10,31 +12,42 @@ pub struct Assets {
 }
 impl Assets {
     pub fn load() -> Self {
+        let tileset = Spritesheet::new(
+            load_ase_texture(include_bytes!("../assets/tileset.ase"), None),
+            16.0,
+        );
         Self {
-            tileset: Spritesheet::new(
-                load_ase_texture(include_bytes!("../assets/tileset.ase"), None),
-                16.0,
-            ),
-            map: Map::new(include_str!("../assets/map.tmx")),
+            map: Map::new(include_str!("../assets/map.tmx"), &tileset),
+            tileset,
         }
     }
 }
 
 pub struct Map {
+    pub camera: Camera2D,
     pub floor: TileMap,
     pub walls: TileMap,
     pub detail: TileMap,
 }
 impl Map {
-    pub fn new(data: &str) -> Self {
-        Self {
-            floor: parse_tilemap_layer(data, "floor"),
+    pub fn new(data: &str, tileset: &Spritesheet) -> Self {
+        let floor = parse_tilemap_layer(data, "floor");
+        let w = floor.1 as f32 * 16.0;
+        let h = (floor.0.len() / floor.1) as f32 * 16.0;
+        let mut camera = create_camera(w, h);
+        camera.target = vec2(w / 2.0, h / 2.0);
+        let new = Self {
+            camera,
+            floor,
             walls: parse_tilemap_layer(data, "walls"),
             detail: parse_tilemap_layer(data, "detail"),
-        }
+        };
+        set_camera(&new.camera);
+        new.draw(tileset);
+        new
     }
-    pub fn draw(&self, assets: &Assets) {
-        let spritesheet_width = (assets.tileset.texture.width() / assets.tileset.sprite_size) as u8;
+    fn draw(&self, tileset: &Spritesheet) {
+        let spritesheet_width = (tileset.texture.width() / tileset.sprite_size) as u8;
         for layer in [&self.floor, &self.walls, &self.detail] {
             for (index, tile) in layer.0.iter().enumerate() {
                 if *tile == 0 {
@@ -44,7 +57,7 @@ impl Map {
                 let x = index % layer.1;
                 let y = index / layer.1;
 
-                assets.tileset.draw_tile(
+                tileset.draw_tile(
                     (x * 16) as f32,
                     (y * 16) as f32,
                     (tile % spritesheet_width) as f32,
@@ -139,7 +152,6 @@ impl Spritesheet {
     }
 }
 pub struct AnimationsGroup {
-    #[expect(dead_code)]
     pub file: AsepriteFile,
     pub animations: Vec<Animation>,
 }
