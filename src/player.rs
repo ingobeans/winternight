@@ -17,12 +17,27 @@ impl Direction {
             Direction::Down => "down",
         }
     }
-    fn from_vec2(vec: Vec2) -> Self {
-        match (vec.x, vec.y) {
-            (0.0, -1.0) => Direction::Up,
-            (0.0, 1.0) => Direction::Down,
-            (1.0, 0.0) => Direction::Right,
-            (-1.0, 0.0) => Direction::Left,
+    fn from_vec2(vec: Vec2, last: Vec2) -> Self {
+        if !(vec.x != 0.0 && vec.y != 0.0) {
+            match (vec.x, vec.y) {
+                (0.0, -1.0) => Direction::Up,
+                (0.0, 1.0) => Direction::Down,
+                (1.0, 0.0) => Direction::Right,
+                (-1.0, 0.0) => Direction::Left,
+                _ => panic!(),
+            }
+        } else {
+            let x_dir = Self::from_vec2(vec2(vec.x, 0.0), Vec2::ZERO);
+            let y_dir = Self::from_vec2(vec2(0.0, vec.y), Vec2::ZERO);
+            if last.x != 0.0 { y_dir } else { x_dir }
+        }
+    }
+    fn to_vec2(&self) -> Vec2 {
+        match self {
+            Direction::Up => vec2(0.0, -1.0),
+            Direction::Down => vec2(0.0, 1.0),
+            Direction::Right => vec2(1.0, 0.0),
+            Direction::Left => vec2(-1.0, 0.0),
             _ => panic!(),
         }
     }
@@ -59,10 +74,11 @@ impl Player {
             PlayerState::Idle => {
                 let axis = get_input_axis();
                 if axis != Vec2::ZERO {
-                    self.direction = Direction::from_vec2(axis);
+                    self.direction = Direction::from_vec2(axis, self.direction.to_vec2());
                     self.state = PlayerState::Moving;
-                    self.x = self.x.saturating_add_signed(axis.x as isize);
-                    self.y = self.y.saturating_add_signed(axis.y as isize);
+                    let dir = self.direction.to_vec2();
+                    self.x = self.x.saturating_add_signed(dir.x as isize);
+                    self.y = self.y.saturating_add_signed(dir.y as isize);
                 }
             }
             PlayerState::Moving => {

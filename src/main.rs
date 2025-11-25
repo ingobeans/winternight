@@ -26,7 +26,14 @@ impl<'a> Game<'a> {
         let scale_factor = (screen_width / SCREEN_WIDTH).min(screen_height / SCREEN_HEIGHT);
         let delta_time = get_frame_time();
         self.player.update(delta_time);
-        let map = self.assets.map.camera.render_target.as_ref().unwrap();
+        let map = self
+            .assets
+            .map
+            .background_camera
+            .render_target
+            .as_ref()
+            .unwrap();
+
         draw_texture_ex(
             &map.texture,
             0.0,
@@ -38,6 +45,23 @@ impl<'a> Game<'a> {
             },
         );
         self.player.draw(self.assets, scale_factor);
+        let map = self
+            .assets
+            .map
+            .foreground_camera
+            .render_target
+            .as_ref()
+            .unwrap();
+        draw_texture_ex(
+            &map.texture,
+            0.0,
+            0.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(map.texture.size() * scale_factor),
+                ..Default::default()
+            },
+        );
     }
 }
 
