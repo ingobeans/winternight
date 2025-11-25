@@ -68,17 +68,20 @@ impl Player {
             state: PlayerState::Idle,
         }
     }
-    pub fn update(&mut self, delta_time: f32) {
+    pub fn update(&mut self, delta_time: f32, assets: &Assets) {
         self.time += delta_time;
         match self.state {
             PlayerState::Idle => {
                 let axis = get_input_axis();
                 if axis != Vec2::ZERO {
                     self.direction = Direction::from_vec2(axis, self.direction.to_vec2());
-                    self.state = PlayerState::Moving;
                     let dir = self.direction.to_vec2();
-                    self.x = self.x.saturating_add_signed(dir.x as isize);
-                    self.y = self.y.saturating_add_signed(dir.y as isize);
+                    let new_x = self.x.saturating_add_signed(dir.x as isize);
+                    let new_y = self.y.saturating_add_signed(dir.y as isize);
+                    if assets.map.walls.0[new_x + new_y * assets.map.walls.1] == 0 {
+                        (self.x, self.y) = (new_x, new_y);
+                        self.state = PlayerState::Moving;
+                    }
                 }
             }
             PlayerState::Moving => {

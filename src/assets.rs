@@ -34,6 +34,7 @@ pub struct Map {
     pub floor_decorations: TileMap,
     pub walls: TileMap,
     pub detail: TileMap,
+    pub special: TileMap,
 }
 impl Map {
     pub fn new(data: &str, tileset: &Spritesheet) -> Self {
@@ -51,6 +52,7 @@ impl Map {
             floor_decorations: parse_tilemap_layer(data, "floor_decorations"),
             walls: parse_tilemap_layer(data, "walls"),
             detail: parse_tilemap_layer(data, "detail"),
+            special: parse_tilemap_layer(data, "special"),
         };
         set_camera(&new.background_camera);
         new.floor.draw(tileset);
@@ -62,7 +64,7 @@ impl Map {
     }
 }
 
-pub struct TileMap(Vec<u8>, usize);
+pub struct TileMap(pub Vec<u8>, pub usize);
 impl TileMap {
     fn draw(&self, tileset: &Spritesheet) {
         let spritesheet_width = (tileset.texture.width() / tileset.sprite_size) as u8;
@@ -82,6 +84,17 @@ impl TileMap {
                 None,
             );
         }
+    }
+    pub fn find_tile(&self, target: u8) -> (usize, usize) {
+        for (index, tile) in self.0.iter().enumerate() {
+            if *tile == 0 {
+                continue;
+            }
+            if tile - 1 == target {
+                return (index % self.1, index / self.1);
+            }
+        }
+        panic!()
     }
 }
 

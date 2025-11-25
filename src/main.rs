@@ -14,9 +14,10 @@ struct Game<'a> {
 }
 impl<'a> Game<'a> {
     fn new(assets: &'a Assets) -> Self {
+        let (x, y) = assets.map.special.find_tile(0);
         Self {
             assets,
-            player: Player::new(0, 0),
+            player: Player::new(x, y),
         }
     }
     fn update(&mut self) {
@@ -25,7 +26,7 @@ impl<'a> Game<'a> {
         let (screen_width, screen_height) = screen_size();
         let scale_factor = (screen_width / SCREEN_WIDTH).min(screen_height / SCREEN_HEIGHT);
         let delta_time = get_frame_time();
-        self.player.update(delta_time);
+        self.player.update(delta_time, self.assets);
         let map = self
             .assets
             .map
