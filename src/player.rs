@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{assets::Assets, utils::get_input_axis};
+use crate::{assets::Assets, utils::*};
 
 pub enum Direction {
     Left,
@@ -105,8 +105,8 @@ impl Player {
                 .player
                 .get_by_name(self.direction.name())
                 .get_at_time(anim_frame),
-            self.draw_pos.x.floor() * scale_factor,
-            self.draw_pos.y.floor() * scale_factor,
+            SCREEN_WIDTH * scale_factor / 2.0,
+            SCREEN_HEIGHT * scale_factor / 2.0,
             WHITE,
             DrawTextureParams {
                 dest_size: Some(vec2(16.0, 16.0) * scale_factor),

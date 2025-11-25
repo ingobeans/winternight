@@ -31,6 +31,7 @@ pub struct Map {
     pub background_camera: Camera2D,
     pub foreground_camera: Camera2D,
     pub floor: TileMap,
+    pub floor_decorations: TileMap,
     pub walls: TileMap,
     pub detail: TileMap,
 }
@@ -47,11 +48,13 @@ impl Map {
             background_camera,
             foreground_camera,
             floor,
+            floor_decorations: parse_tilemap_layer(data, "floor_decorations"),
             walls: parse_tilemap_layer(data, "walls"),
             detail: parse_tilemap_layer(data, "detail"),
         };
         set_camera(&new.background_camera);
         new.floor.draw(tileset);
+        new.floor_decorations.draw(tileset);
         set_camera(&new.foreground_camera);
         new.walls.draw(tileset);
         new.detail.draw(tileset);

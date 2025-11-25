@@ -36,8 +36,8 @@ impl<'a> Game<'a> {
 
         draw_texture_ex(
             &map.texture,
-            0.0,
-            0.0,
+            -self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0,
+            -self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0,
             WHITE,
             DrawTextureParams {
                 dest_size: Some(map.texture.size() * scale_factor),
@@ -54,8 +54,8 @@ impl<'a> Game<'a> {
             .unwrap();
         draw_texture_ex(
             &map.texture,
-            0.0,
-            0.0,
+            -self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0,
+            -self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0,
             WHITE,
             DrawTextureParams {
                 dest_size: Some(map.texture.size() * scale_factor),
