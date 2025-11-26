@@ -38,7 +38,6 @@ impl Direction {
             Direction::Down => vec2(0.0, 1.0),
             Direction::Right => vec2(1.0, 0.0),
             Direction::Left => vec2(-1.0, 0.0),
-            _ => panic!(),
         }
     }
 }

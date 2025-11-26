@@ -13,6 +13,7 @@ pub struct Assets {
     pub map: Map,
     pub player: AnimationsGroup,
     pub vision_cones: Texture2D,
+    pub snow_blowing: Animation,
 }
 impl Assets {
     pub fn load() -> Self {
@@ -25,6 +26,7 @@ impl Assets {
             tileset,
             player: AnimationsGroup::from_file(include_bytes!("../assets/player.ase")),
             vision_cones: load_ase_texture(include_bytes!("../assets/vision_cones.ase"), None),
+            snow_blowing: Animation::from_file(include_bytes!("../assets/snow_blowing.ase")),
         }
     }
 }

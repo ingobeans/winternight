@@ -11,6 +11,7 @@ mod utils;
 struct Game<'a> {
     assets: &'a Assets,
     player: Player,
+    time: f32,
 }
 impl<'a> Game<'a> {
     fn new(assets: &'a Assets) -> Self {
@@ -18,6 +19,7 @@ impl<'a> Game<'a> {
         Self {
             assets,
             player: Player::new(x, y),
+            time: 0.0,
         }
     }
     fn update(&mut self) {
@@ -26,6 +28,7 @@ impl<'a> Game<'a> {
         let (screen_width, screen_height) = screen_size();
         let scale_factor = (screen_width / SCREEN_WIDTH).min(screen_height / SCREEN_HEIGHT);
         let delta_time = get_frame_time();
+        self.time += delta_time;
         self.player.update(delta_time, self.assets);
         let map = self
             .assets
@@ -49,6 +52,26 @@ impl<'a> Game<'a> {
                 + SCREEN_HEIGHT * scale_factor / 2.0
                 - 12.0 * scale_factor,
             WHITE,
+            DrawTextureParams {
+                dest_size: Some(self.assets.vision_cones.size() * scale_factor * 1.15),
+                ..Default::default()
+            },
+        );
+        draw_texture_ex(
+            &self
+                .assets
+                .snow_blowing
+                .get_at_time((self.time * 1000.0) as u32),
+            -self.player.draw_pos.x * scale_factor
+                + SCREEN_WIDTH * scale_factor / 2.0
+                + SCREEN_WIDTH * scale_factor / 2.0
+                - 118.0 * scale_factor
+                - 12.0 * scale_factor,
+            -self.player.draw_pos.y * scale_factor
+                + SCREEN_HEIGHT * scale_factor / 2.0
+                + SCREEN_HEIGHT * scale_factor / 2.0
+                - 12.0 * scale_factor,
+            WHITE.with_alpha(0.5),
             DrawTextureParams {
                 dest_size: Some(self.assets.vision_cones.size() * scale_factor * 1.15),
                 ..Default::default()
