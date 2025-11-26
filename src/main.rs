@@ -35,6 +35,25 @@ impl<'a> Game<'a> {
             .as_ref()
             .unwrap();
 
+        // draw vision cones.
+        // i did this by hand and it uses a lot of magic numbers, mb
+        draw_texture_ex(
+            &self.assets.vision_cones,
+            -self.player.draw_pos.x * scale_factor
+                + SCREEN_WIDTH * scale_factor / 2.0
+                + SCREEN_WIDTH * scale_factor / 2.0
+                - 118.0 * scale_factor
+                - 12.0 * scale_factor,
+            -self.player.draw_pos.y * scale_factor
+                + SCREEN_HEIGHT * scale_factor / 2.0
+                + SCREEN_HEIGHT * scale_factor / 2.0
+                - 12.0 * scale_factor,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(self.assets.vision_cones.size() * scale_factor * 1.15),
+                ..Default::default()
+            },
+        );
         draw_texture_ex(
             &map.texture,
             -self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0,

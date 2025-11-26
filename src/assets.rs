@@ -12,6 +12,7 @@ pub struct Assets {
     pub tileset: Spritesheet,
     pub map: Map,
     pub player: AnimationsGroup,
+    pub vision_cones: Texture2D,
 }
 impl Assets {
     pub fn load() -> Self {
@@ -23,6 +24,7 @@ impl Assets {
             map: Map::new(include_str!("../assets/map.tmx"), &tileset),
             tileset,
             player: AnimationsGroup::from_file(include_bytes!("../assets/player.ase")),
+            vision_cones: load_ase_texture(include_bytes!("../assets/vision_cones.ase"), None),
         }
     }
 }
