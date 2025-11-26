@@ -37,6 +37,8 @@ pub enum Action {
     ChangeAnimation(usize),
     SetPlayingAnimation(bool),
     Dialogue(&'static str),
+    ShowScreen(usize),
+    HideScreen,
     Noop,
 }
 
@@ -67,6 +69,7 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
                 ActionCondition::AnimationFinish,
                 Action::SetPlayingAnimation(false),
             ),
+            (ActionCondition::AlwaysChange, Action::ShowScreen(0)),
         ],
         animation: &assets.door,
         x,
