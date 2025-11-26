@@ -2,6 +2,9 @@ use macroquad::prelude::*;
 
 use crate::{assets::Assets, utils::*};
 
+#[derive(PartialEq)]
+pub enum Tag {}
+
 pub enum Direction {
     Left,
     Right,
@@ -49,6 +52,7 @@ pub enum PlayerState {
 const MOVE_TIME: f32 = 0.25;
 
 pub struct Player {
+    pub tags: Vec<Tag>,
     pub draw_pos: Vec2,
     pub x: usize,
     pub y: usize,
@@ -57,8 +61,9 @@ pub struct Player {
     pub state: PlayerState,
 }
 impl Player {
-    pub fn new(x: usize, y: usize) -> Self {
+    pub fn new((x, y): (usize, usize)) -> Self {
         Self {
+            tags: Vec::new(),
             draw_pos: vec2(x as f32, y as f32) * 16.0,
             x,
             y,

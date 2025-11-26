@@ -1,10 +1,12 @@
 use macroquad::{miniquad::window::screen_size, prelude::*};
 
 use crate::assets::Assets;
+use crate::characters::*;
 use crate::player::Player;
 use crate::utils::*;
 
 mod assets;
+mod characters;
 mod player;
 mod utils;
 
@@ -12,14 +14,18 @@ struct Game<'a> {
     assets: &'a Assets,
     player: Player,
     time: f32,
+    characters: Vec<Character<'a>>,
 }
 impl<'a> Game<'a> {
     fn new(assets: &'a Assets) -> Self {
-        let (x, y) = assets.map.special.find_tile(0);
         Self {
             assets,
-            player: Player::new(x, y),
+            player: Player::new(assets.map.special.find_tile(0)),
             time: 0.0,
+            characters: vec![
+                door(assets.map.special.find_tile(2), assets),
+                raincoat_ferret(assets.map.special.find_tile(1), assets),
+            ],
         }
     }
     fn update(&mut self) {
@@ -37,6 +43,13 @@ impl<'a> Game<'a> {
             .render_target
             .as_ref()
             .unwrap();
+
+        let ctx = DrawCtx {
+            screen_size: vec2(screen_width, screen_height),
+            camera_pos: self.player.draw_pos,
+            scale_factor,
+            assets: &self.assets,
+        };
 
         // draw vision cones.
         // i did this by hand and it uses a lot of magic numbers, mb
@@ -79,8 +92,8 @@ impl<'a> Game<'a> {
         );
         draw_texture_ex(
             &map.texture,
-            -self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0,
-            -self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0,
+            (-self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0).floor(),
+            (-self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0).floor(),
             WHITE,
             DrawTextureParams {
                 dest_size: Some(map.texture.size() * scale_factor),
@@ -88,6 +101,25 @@ impl<'a> Game<'a> {
             },
         );
         self.player.draw(self.assets, scale_factor);
+        for character in self.characters.iter().rev() {
+            let time = (character.time * 1000.0) as u32;
+            draw_texture_ex(
+                &character.animation.animations[character.animation_index].get_at_time(time),
+                character.draw_pos.x * scale_factor
+                    + (-self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0)
+                        .floor(),
+                character.draw_pos.y * scale_factor
+                    + (-self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0)
+                        .floor(),
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(
+                        character.animation.animations[0].get_at_time(0).size() * scale_factor,
+                    ),
+                    ..Default::default()
+                },
+            );
+        }
         let map = self
             .assets
             .map
@@ -97,14 +129,55 @@ impl<'a> Game<'a> {
             .unwrap();
         draw_texture_ex(
             &map.texture,
-            -self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0,
-            -self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0,
+            (-self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0).floor(),
+            (-self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0).floor(),
             WHITE,
             DrawTextureParams {
                 dest_size: Some(map.texture.size() * scale_factor),
                 ..Default::default()
             },
         );
+        for character in self.characters.iter_mut() {
+            if character.animation_playing {
+                character.time += delta_time;
+            }
+            let mut set_time = None;
+            let action = character.get_action();
+            if match &action.0 {
+                ActionCondition::PlayerHasTag(tag) => self.player.tags.contains(tag),
+                ActionCondition::PlayerInteract(text, pos) => {
+                    let dist = self.player.draw_pos.distance_squared(*pos);
+                    if dist <= 256.0 {
+                        draw_tooltip(&text, &ctx)
+                    } else {
+                        false
+                    }
+                }
+                ActionCondition::AlwaysChange => true,
+                ActionCondition::NeverChange => false,
+                ActionCondition::AnimationFinish => {
+                    let anim_length = character.animation.animations[character.animation_index]
+                        .total_length as f32;
+                    let result =
+                        character.animation_playing && character.time * 1000.0 >= anim_length;
+                    if result {
+                        set_time = Some((anim_length - 1.0) / 1000.0);
+                    }
+                    result
+                }
+            } {
+                match &action.1 {
+                    Action::ChangeAnimation(index) => character.animation_index = *index,
+                    Action::Noop => {}
+                    Action::SetPlayingAnimation(value) => character.animation_playing = *value,
+                    _ => todo!(),
+                }
+                character.action_index += 1;
+                if let Some(time) = set_time {
+                    character.time = time;
+                }
+            }
+        }
     }
 }
 

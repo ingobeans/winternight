@@ -14,6 +14,9 @@ pub struct Assets {
     pub player: AnimationsGroup,
     pub vision_cones: Texture2D,
     pub snow_blowing: Animation,
+    pub raincoat_ferret: AnimationsGroup,
+    pub door: AnimationsGroup,
+    pub font: Font,
 }
 impl Assets {
     pub fn load() -> Self {
@@ -27,6 +30,11 @@ impl Assets {
             player: AnimationsGroup::from_file(include_bytes!("../assets/player.ase")),
             vision_cones: load_ase_texture(include_bytes!("../assets/vision_cones.ase"), None),
             snow_blowing: Animation::from_file(include_bytes!("../assets/snow_blowing.ase")),
+            raincoat_ferret: AnimationsGroup::from_file(include_bytes!(
+                "../assets/raincoat_ferret.ase"
+            )),
+            door: AnimationsGroup::from_file(include_bytes!("../assets/door.ase")),
+            font: load_ttf_font_from_bytes(include_bytes!("../assets/tinos.ttf")).unwrap(),
         }
     }
 }
