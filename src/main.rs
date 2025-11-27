@@ -119,7 +119,7 @@ impl<'a> Game<'a> {
             );
             self.player.draw(self.assets, scale_factor);
             for character in self.characters.iter().rev() {
-                let time = (character.time * 1000.0) as u32;
+                let time = (character.anim_time * 1000.0) as u32;
                 draw_texture_ex(
                     &character.animation.animations[character.animation_index].get_at_time(time),
                     character.draw_pos.x * scale_factor
@@ -160,8 +160,9 @@ impl<'a> Game<'a> {
             );
         }
         for character in self.characters.iter_mut() {
+            character.timer += delta_time;
             if character.animation_playing {
-                character.time += delta_time;
+                character.anim_time += delta_time;
             }
             let mut set_time = None;
             let action = character.get_action();
@@ -181,12 +182,14 @@ impl<'a> Game<'a> {
                     let anim_length = character.animation.animations[character.animation_index]
                         .total_length as f32;
                     let result =
-                        character.animation_playing && character.time * 1000.0 >= anim_length;
+                        character.animation_playing && character.anim_time * 1000.0 >= anim_length;
                     if result {
                         set_time = Some((anim_length - 1.0) / 1000.0);
                     }
                     result
                 }
+                ActionCondition::Dialogue(text, name) => draw_dialogue(text, name, &ctx),
+                ActionCondition::Time(time) => character.timer >= *time,
             } {
                 match &action.1 {
                     Action::ChangeAnimation(index) => character.animation_index = *index,
@@ -194,11 +197,13 @@ impl<'a> Game<'a> {
                     Action::SetPlayingAnimation(value) => character.animation_playing = *value,
                     Action::ShowScreen(index) => self.screen = Some(*index),
                     Action::HideScreen => self.screen = None,
+                    Action::GiveTag(tag) => self.player.tags.push(*tag),
                     _ => todo!(),
                 }
+                character.timer = 0.0;
                 character.action_index += 1;
                 if let Some(time) = set_time {
-                    character.time = time;
+                    character.anim_time = time;
                 }
             }
         }

@@ -36,9 +36,12 @@ impl Assets {
             )),
             door: AnimationsGroup::from_file(include_bytes!("../assets/door.ase")),
             font: load_ttf_font_from_bytes(include_bytes!("../assets/tinos.ttf")).unwrap(),
-            screens: vec![Animation::from_file(include_bytes!(
-                "../assets/screens/raincoat_ferret.ase"
-            ))],
+            screens: vec![
+                Animation::from_file(include_bytes!("../assets/screens/raincoat_ferret.ase")),
+                Animation::from_file(include_bytes!(
+                    "../assets/screens/raincoat_ferret_happy.ase"
+                )),
+            ],
         }
     }
 }
