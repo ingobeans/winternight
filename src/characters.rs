@@ -38,7 +38,10 @@ pub enum ActionCondition {
 pub enum Action {
     GiveTag(Tag),
     ChangeAnimation(usize),
+    Teleport(usize, usize),
+    TeleportPlayer(usize, usize),
     SetPlayingAnimation(bool),
+    SetAnimationTime(f32),
     ShowScreen(usize),
     HideScreen,
     Noop,
@@ -65,6 +68,15 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             ),
             (ActionCondition::Time(0.5), Action::ShowScreen(1)),
             (ActionCondition::Time(1.0), Action::HideScreen),
+            (
+                ActionCondition::AlwaysChange,
+                Action::TeleportPlayer(x + 1, y + 1),
+            ),
+            (ActionCondition::AlwaysChange, Action::Teleport(x, y + 1)),
+            (
+                ActionCondition::AlwaysChange,
+                Action::GiveTag(Tag::ClosedDoor),
+            ),
         ],
         animation: &assets.raincoat_ferret,
         x,
@@ -96,6 +108,10 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
                 Action::GiveTag(Tag::OpenedDoor),
             ),
             (ActionCondition::AlwaysChange, Action::ShowScreen(0)),
+            (
+                ActionCondition::PlayerHasTag(Tag::ClosedDoor),
+                Action::SetAnimationTime(0.0),
+            ),
         ],
         animation: &assets.door,
         x,

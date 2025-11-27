@@ -198,7 +198,23 @@ impl<'a> Game<'a> {
                     Action::ShowScreen(index) => self.screen = Some(*index),
                     Action::HideScreen => self.screen = None,
                     Action::GiveTag(tag) => self.player.tags.push(*tag),
-                    _ => todo!(),
+                    Action::SetAnimationTime(time) => set_time = Some(*time),
+                    Action::Teleport(x, y) => {
+                        let x = *x;
+                        let y = *y;
+                        character.x = x;
+                        character.y = y;
+                        character.draw_pos =
+                            vec2((character.x * 16) as f32, (character.y * 16) as f32);
+                    }
+                    Action::TeleportPlayer(x, y) => {
+                        let x = *x;
+                        let y = *y;
+                        self.player.x = x;
+                        self.player.y = y;
+                        self.player.draw_pos =
+                            vec2((self.player.x * 16) as f32, (self.player.y * 16) as f32);
+                    }
                 }
                 character.timer = 0.0;
                 character.action_index += 1;

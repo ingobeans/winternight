@@ -2,9 +2,10 @@ use macroquad::prelude::*;
 
 use crate::{assets::Assets, utils::*};
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Tag {
     OpenedDoor,
+    ClosedDoor,
 }
 
 pub enum Direction {
