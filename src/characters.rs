@@ -30,7 +30,9 @@ pub fn pathfind(
     pathfinding::prelude::astar(
         &from,
         |p| generate_successors(assets, *p, player_pos),
-        |&(x, y)| (to.0.abs_diff(x) + to.1.abs_diff(y)) / 3,
+        |&(x, y)| {
+            ((to.0 as f32 - x as f32).powi(2) + (to.1 as f32 - y as f32).powi(2)).sqrt() as usize
+        },
         |&p| p == to,
     )
 }
