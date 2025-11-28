@@ -1,14 +1,17 @@
+use std::collections::HashMap;
+
 use crate::{
     assets::{AnimationsGroup, Assets},
     player::Tag,
     utils::*,
 };
+use asefile::AsepriteFile;
 use macroquad::prelude::*;
 
 pub struct Character<'a> {
     pub draw_pos: Vec2,
     pub actions: Vec<(ActionCondition, Action)>,
-    pub animation: &'a AnimationsGroup,
+    pub animation: Option<&'a AnimationsGroup>,
     pub x: usize,
     pub y: usize,
     pub action_index: usize,
@@ -17,6 +20,8 @@ pub struct Character<'a> {
     pub anim_time: f32,
     pub timer: f32,
     pub draw_over: bool,
+    pub interact_message: Option<&'static str>,
+    pub interacting: bool,
 }
 impl<'a> Character<'a> {
     pub fn get_action(&self) -> &(ActionCondition, Action) {
@@ -27,22 +32,26 @@ impl<'a> Character<'a> {
     }
     pub fn draw(&self, assets: &Assets, ctx: &DrawCtx) {
         let time = (self.anim_time * 1000.0) as u32;
-        draw_texture_ex(
-            &self.animation.animations[self.animation_index].get_at_time(time),
-            self.draw_pos.x * ctx.scale_factor
-                + (-ctx.camera_pos.x * ctx.scale_factor + SCREEN_WIDTH * ctx.scale_factor / 2.0)
-                    .floor(),
-            self.draw_pos.y * ctx.scale_factor
-                + (-ctx.camera_pos.y * ctx.scale_factor + SCREEN_HEIGHT * ctx.scale_factor / 2.0)
-                    .floor(),
-            WHITE,
-            DrawTextureParams {
-                dest_size: Some(
-                    self.animation.animations[0].get_at_time(0).size() * ctx.scale_factor,
-                ),
-                ..Default::default()
-            },
-        );
+        if let Some(animation) = self.animation {
+            draw_texture_ex(
+                &animation.animations[self.animation_index].get_at_time(time),
+                self.draw_pos.x * ctx.scale_factor
+                    + (-ctx.camera_pos.x * ctx.scale_factor
+                        + SCREEN_WIDTH * ctx.scale_factor / 2.0)
+                        .floor(),
+                self.draw_pos.y * ctx.scale_factor
+                    + (-ctx.camera_pos.y * ctx.scale_factor
+                        + SCREEN_HEIGHT * ctx.scale_factor / 2.0)
+                        .floor(),
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(
+                        animation.animations[0].get_at_time(0).size() * ctx.scale_factor,
+                    ),
+                    ..Default::default()
+                },
+            );
+        }
     }
 }
 
@@ -68,6 +77,22 @@ pub enum Action {
 }
 
 pub const NOOP_ACTION: (ActionCondition, Action) = (ActionCondition::NeverChange, Action::Noop);
+
+pub static BASE_CHARACTER: Character = Character {
+    draw_pos: Vec2::ZERO,
+    actions: Vec::new(),
+    animation: None,
+    x: 0,
+    y: 0,
+    action_index: 0,
+    animation_index: 0,
+    animation_playing: false,
+    anim_time: 0.0,
+    timer: 0.0,
+    draw_over: false,
+    interacting: false,
+    interact_message: None,
+};
 
 pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
     Character {
@@ -106,15 +131,10 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 Action::SetPlayingAnimation(false),
             ),
         ],
-        animation: &assets.raincoat_ferret,
+        animation: Some(&assets.raincoat_ferret),
         x,
         y,
-        action_index: 0,
-        animation_index: 0,
-        animation_playing: false,
-        anim_time: 0.0,
-        timer: 0.0,
-        draw_over: false,
+        ..BASE_CHARACTER
     }
 }
 pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -142,15 +162,10 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
                 Action::SetAnimationTime(0.0),
             ),
         ],
-        animation: &assets.door,
+        animation: Some(&assets.door),
         x,
         y,
-        action_index: 0,
-        animation_index: 0,
-        animation_playing: false,
-        anim_time: 0.0,
-        timer: 0.0,
-        draw_over: false,
+        ..BASE_CHARACTER
     }
 }
 pub fn fireplace<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -167,15 +182,11 @@ pub fn fireplace<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a
             ),
             (ActionCondition::AlwaysChange, Action::ChangeAnimation(1)),
         ],
-        animation: &assets.fireplace,
+        animation: Some(&assets.fireplace),
         x,
         y,
-        action_index: 0,
-        animation_index: 0,
-        animation_playing: false,
-        anim_time: 0.0,
-        timer: 0.0,
         draw_over: true,
+        ..BASE_CHARACTER
     }
 }
 

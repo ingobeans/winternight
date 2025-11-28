@@ -171,14 +171,18 @@ impl<'a> Game<'a> {
                 ActionCondition::AlwaysChange => true,
                 ActionCondition::NeverChange => false,
                 ActionCondition::AnimationFinish => {
-                    let anim_length = character.animation.animations[character.animation_index]
-                        .total_length as f32;
-                    let result =
-                        character.animation_playing && character.anim_time * 1000.0 >= anim_length;
-                    if result {
-                        set_time = Some((anim_length - 1.0) / 1000.0);
+                    if let Some(animation) = character.animation {
+                        let anim_length =
+                            animation.animations[character.animation_index].total_length as f32;
+                        let result = character.animation_playing
+                            && character.anim_time * 1000.0 >= anim_length;
+                        if result {
+                            set_time = Some((anim_length - 1.0) / 1000.0);
+                        }
+                        result
+                    } else {
+                        false
                     }
-                    result
                 }
                 ActionCondition::Dialogue(text, name) => draw_dialogue(text, name, &ctx),
                 ActionCondition::Time(time) => character.timer >= *time,
