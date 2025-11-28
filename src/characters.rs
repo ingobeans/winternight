@@ -77,6 +77,7 @@ pub struct Character<'a> {
     pub name: &'static str,
     pub moving_to: Option<(usize, usize)>,
     pub direction: Direction,
+    pub has_collision: bool,
 }
 impl<'a> Character<'a> {
     pub fn get_action(&self) -> &(ActionCondition, Action) {
@@ -131,6 +132,7 @@ pub enum Action {
     SetInteractMessage(Option<&'static str>),
     MoveTo((usize, usize)),
     HideScreen,
+    SetCollision(bool),
     Noop,
 }
 
@@ -153,6 +155,7 @@ pub static BASE_CHARACTER: Character = Character {
     moving_to: None,
     name: "",
     direction: Direction::Left,
+    has_collision: true,
 };
 
 pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -212,6 +215,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::ReachedDestination,
                 Action::ChangeAnimation(5),
             ),
+            (ActionCondition::AlwaysChange, Action::SetCollision(false)),
             (
                 ActionCondition::AlwaysChange,
                 Action::SetPlayingAnimation(true),

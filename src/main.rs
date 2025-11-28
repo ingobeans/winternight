@@ -239,6 +239,7 @@ impl<'a> Game<'a> {
                     Action::GiveTag(tag) => self.player.tags.push(*tag),
                     Action::SetAnimationTime(time) => set_time = Some(*time),
                     Action::SetInteractMessage(msg) => character.interact_message = *msg,
+                    Action::SetCollision(value) => character.has_collision = *value,
                     Action::Teleport(x, y) => {
                         let x = *x;
                         let y = *y;

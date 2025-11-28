@@ -98,8 +98,9 @@ impl Player {
                     let new_y = self.y.saturating_add_signed(dir.y as isize);
 
                     if assets.map.walls.0[new_x + new_y * assets.map.walls.1] == 0 {
-                        if let Some(character) =
-                            characters.iter_mut().find(|f| f.x == new_x && f.y == new_y)
+                        if let Some(character) = characters
+                            .iter_mut()
+                            .find(|f| f.has_collision && f.x == new_x && f.y == new_y)
                         {
                             if !interacting_with_any && character.interact_message.is_some() {
                                 character.interacting = true;
