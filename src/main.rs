@@ -2,7 +2,7 @@ use macroquad::{miniquad::window::screen_size, prelude::*};
 
 use crate::assets::Assets;
 use crate::characters::*;
-use crate::player::Player;
+use crate::player::{Direction, MOVE_TIME, Player};
 use crate::utils::*;
 
 mod assets;
@@ -27,6 +27,7 @@ impl<'a> Game<'a> {
                 fireplace(assets.map.special.find_tile(3), assets),
                 door(assets.map.special.find_tile(2), assets),
                 raincoat_ferret(assets.map.special.find_tile(1), assets),
+                //test_character(assets.map.special.find_tile(4), assets),
             ],
             screen: None,
         }
@@ -156,6 +157,33 @@ impl<'a> Game<'a> {
         }
         for character in self.characters.iter_mut() {
             character.timer += delta_time;
+            let mut reached_destination = false;
+            if let Some((x, y)) = &character.moving_to {
+                let target = vec2(character.x as f32, character.y as f32) * 16.0;
+
+                if character.draw_pos.distance(target) <= delta_time * (16.0 / MOVE_TIME) {
+                    character.draw_pos = target;
+                    let path = pathfind(
+                        self.assets,
+                        (character.x, character.y),
+                        (*x, *y),
+                        (self.player.x, self.player.y),
+                    );
+                    if let Some(path) = path.and_then(|f| f.0.get(1).cloned()) {
+                        (character.x, character.y) = path;
+                    }
+                } else {
+                    let delta = target - character.draw_pos;
+                    character.direction = Direction::from_vec2(delta.normalize(), Vec2::ZERO);
+                    character.animation_index =
+                        character.animation.unwrap().tag_names[character.direction.name()];
+                    character.draw_pos = character
+                        .draw_pos
+                        .move_towards(target, delta_time * (16.0 / MOVE_TIME));
+                }
+
+                reached_destination = vec2((x * 16) as f32, (y * 16) as f32) == character.draw_pos;
+            }
             if character.animation_playing {
                 character.anim_time += delta_time;
             }
@@ -169,6 +197,7 @@ impl<'a> Game<'a> {
             let mut set_time = None;
             let action = character.get_action();
             if match &action.0 {
+                ActionCondition::ReachedDestination => reached_destination,
                 ActionCondition::PlayerHasTag(tag) => self.player.tags.contains(tag),
                 ActionCondition::PlayerInteract(text, pos) => {
                     let dist = self.player.draw_pos.distance_squared(*pos);
@@ -198,8 +227,9 @@ impl<'a> Game<'a> {
                 ActionCondition::Time(time) => character.timer >= *time,
             } {
                 match &action.1 {
-                    Action::ChangeAnimation(index) => character.animation_index = *index,
                     Action::Noop => {}
+                    Action::MoveTo(pos) => character.moving_to = Some(*pos),
+                    Action::ChangeAnimation(index) => character.animation_index = *index,
                     Action::SetPlayingAnimation(value) => character.animation_playing = *value,
                     Action::ShowScreen(index) => self.screen = Some(*index),
                     Action::HideScreen => self.screen = None,

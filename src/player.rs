@@ -12,6 +12,7 @@ pub enum Tag {
     ClosedDoor,
 }
 
+#[derive(Clone, Copy)]
 pub enum Direction {
     Left,
     Right,
@@ -19,7 +20,7 @@ pub enum Direction {
     Down,
 }
 impl Direction {
-    fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             Direction::Left => "left",
             Direction::Right => "right",
@@ -27,14 +28,18 @@ impl Direction {
             Direction::Down => "down",
         }
     }
-    fn from_vec2(vec: Vec2, last: Vec2) -> Self {
+    pub fn from_vec2(vec: Vec2, last: Vec2) -> Self {
         if !(vec.x != 0.0 && vec.y != 0.0) {
-            match (vec.x, vec.y) {
-                (0.0, -1.0) => Direction::Up,
-                (0.0, 1.0) => Direction::Down,
-                (1.0, 0.0) => Direction::Right,
-                (-1.0, 0.0) => Direction::Left,
-                _ => panic!(),
+            if vec.x < 0.0 {
+                Direction::Left
+            } else if vec.x > 0.0 {
+                Direction::Right
+            } else if vec.y < 0.0 {
+                Direction::Up
+            } else if vec.y > 0.0 {
+                Direction::Down
+            } else {
+                Direction::Left
             }
         } else {
             let x_dir = Self::from_vec2(vec2(vec.x, 0.0), Vec2::ZERO);
@@ -42,7 +47,7 @@ impl Direction {
             if last.x != 0.0 { y_dir } else { x_dir }
         }
     }
-    fn to_vec2(&self) -> Vec2 {
+    pub fn to_vec2(&self) -> Vec2 {
         match self {
             Direction::Up => vec2(0.0, -1.0),
             Direction::Down => vec2(0.0, 1.0),
@@ -56,7 +61,7 @@ pub enum PlayerState {
     Idle,
 }
 
-const MOVE_TIME: f32 = 0.25;
+pub const MOVE_TIME: f32 = 0.25;
 
 pub struct Player {
     pub tags: Vec<Tag>,

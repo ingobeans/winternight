@@ -1,6 +1,8 @@
+use std::iter::Map;
+
 use crate::{
     assets::{AnimationsGroup, Assets},
-    player::Tag,
+    player::{Direction, Tag},
     utils::*,
 };
 use macroquad::prelude::*;
@@ -15,6 +17,45 @@ pub fn any_interacting(characters: &[Character]) -> Option<usize> {
             }
         }
     })
+}
+type SuccessorIterator =
+    Map<std::vec::IntoIter<(usize, usize)>, fn((usize, usize)) -> ((usize, usize), usize)>;
+
+pub fn pathfind(
+    assets: &Assets,
+    from: (usize, usize),
+    to: (usize, usize),
+    player_pos: (usize, usize),
+) -> Option<(Vec<(usize, usize)>, usize)> {
+    pathfinding::prelude::astar(
+        &from,
+        |p| generate_successors(assets, *p, player_pos),
+        |&(x, y)| (to.0.abs_diff(x) + to.1.abs_diff(y)) / 3,
+        |&p| p == to,
+    )
+}
+
+fn generate_successors(
+    assets: &Assets,
+    pos: (usize, usize),
+    player_pos: (usize, usize),
+) -> SuccessorIterator {
+    let (x, y) = pos;
+    let mut candidates = vec![(x + 1, y), (x, y + 1)];
+    if x > 0 {
+        candidates.push((x - 1, y));
+    }
+    if y > 0 {
+        candidates.push((x, y - 1));
+    }
+    candidates.retain(|(cx, cy)| {
+        (*cx, *cy) != player_pos && assets.map.walls.0[cx + cy * assets.map.walls.1] == 0
+    });
+    fn map_function(p: (usize, usize)) -> ((usize, usize), usize) {
+        (p, 1)
+    }
+    let mapped: SuccessorIterator = candidates.into_iter().map(map_function);
+    mapped
 }
 
 pub struct Character<'a> {
@@ -32,6 +73,8 @@ pub struct Character<'a> {
     pub interact_message: Option<&'static str>,
     pub interacting: bool,
     pub name: &'static str,
+    pub moving_to: Option<(usize, usize)>,
+    pub direction: Direction,
 }
 impl<'a> Character<'a> {
     pub fn get_action(&self) -> &(ActionCondition, Action) {
@@ -69,6 +112,7 @@ pub enum ActionCondition {
     AlwaysChange,
     NeverChange,
     PlayerInteract(&'static str, Vec2),
+    ReachedDestination,
     PlayerHasTag(Tag),
     AnimationFinish,
     Dialogue(&'static str),
@@ -83,6 +127,7 @@ pub enum Action {
     SetAnimationTime(f32),
     ShowScreen(usize),
     SetInteractMessage(Option<&'static str>),
+    MoveTo((usize, usize)),
     HideScreen,
     Noop,
 }
@@ -103,7 +148,9 @@ pub static BASE_CHARACTER: Character = Character {
     draw_over: false,
     interacting: false,
     interact_message: None,
+    moving_to: None,
     name: "",
+    direction: Direction::Left,
 };
 
 pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -145,6 +192,10 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::AlwaysChange,
                 Action::SetInteractMessage(Some("Thanks!")),
             ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::MoveTo(assets.map.special.find_tile(4)),
+            ),
         ],
         animation: Some(&assets.raincoat_ferret),
         x,
@@ -181,6 +232,21 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
         animation: Some(&assets.door),
         x,
         y,
+        ..BASE_CHARACTER
+    }
+}
+#[allow(dead_code)]
+pub fn test_character<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
+    Character {
+        draw_pos: vec2(x as f32, y as f32) * 16.0,
+        actions: vec![(
+            ActionCondition::AlwaysChange,
+            Action::MoveTo(assets.map.special.find_tile(0)),
+        )],
+        animation: Some(&assets.raincoat_ferret),
+        x,
+        y,
+        draw_over: false,
         ..BASE_CHARACTER
     }
 }
