@@ -204,6 +204,22 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::PlayerHasTag(Tag::LightFire),
                 Action::SetInteractMessage(None),
             ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::MoveTo(assets.map.special.find_tile(5)),
+            ),
+            (
+                ActionCondition::ReachedDestination,
+                Action::ChangeAnimation(5),
+            ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetPlayingAnimation(true),
+            ),
+            (
+                ActionCondition::AnimationFinish,
+                Action::SetPlayingAnimation(false),
+            ),
         ],
         animation: Some(&assets.raincoat_ferret),
         x,

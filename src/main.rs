@@ -229,7 +229,10 @@ impl<'a> Game<'a> {
                 match &action.1 {
                     Action::Noop => {}
                     Action::MoveTo(pos) => character.moving_to = Some(*pos),
-                    Action::ChangeAnimation(index) => character.animation_index = *index,
+                    Action::ChangeAnimation(index) => {
+                        character.animation_index = *index;
+                        character.anim_time = 0.0;
+                    }
                     Action::SetPlayingAnimation(value) => character.animation_playing = *value,
                     Action::ShowScreen(index) => self.screen = Some(*index),
                     Action::HideScreen => self.screen = None,
