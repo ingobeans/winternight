@@ -189,13 +189,14 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::AlwaysChange,
                 Action::SetPlayingAnimation(true),
             ),
-            (
-                ActionCondition::AnimationFinish,
-                Action::SetPlayingAnimation(false),
-            ),
+            (ActionCondition::AnimationFinish, Action::Noop),
             (
                 ActionCondition::AlwaysChange,
                 Action::MoveTo(assets.map.special.find_tile(4)),
+            ),
+            (
+                ActionCondition::AnimationFinish,
+                Action::SetPlayingAnimation(false),
             ),
             (
                 ActionCondition::ReachedDestination,
@@ -210,6 +211,10 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             (
                 ActionCondition::AlwaysChange,
                 Action::MoveTo(assets.map.special.find_tile(5)),
+            ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetPlayingAnimation(true),
             ),
             (
                 ActionCondition::ReachedDestination,
