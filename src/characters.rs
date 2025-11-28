@@ -1,6 +1,6 @@
 use crate::{
     assets::{AnimationsGroup, Assets},
-    player::{Player, Tag},
+    player::Tag,
     utils::*,
 };
 use macroquad::prelude::*;
@@ -96,6 +96,14 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             (
                 ActionCondition::AlwaysChange,
                 Action::GiveTag(Tag::ClosedDoor),
+            ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetPlayingAnimation(true),
+            ),
+            (
+                ActionCondition::AnimationFinish,
+                Action::SetPlayingAnimation(false),
             ),
         ],
         animation: &assets.raincoat_ferret,
