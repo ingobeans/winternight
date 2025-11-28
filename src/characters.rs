@@ -1,6 +1,6 @@
 use crate::{
     assets::{AnimationsGroup, Assets},
-    player::Tag,
+    player::{Player, Tag},
     utils::*,
 };
 use macroquad::prelude::*;
@@ -16,6 +16,7 @@ pub struct Character<'a> {
     pub animation_index: usize,
     pub anim_time: f32,
     pub timer: f32,
+    pub draw_over: bool,
 }
 impl<'a> Character<'a> {
     pub fn get_action(&self) -> &(ActionCondition, Action) {
@@ -23,6 +24,25 @@ impl<'a> Character<'a> {
             return &NOOP_ACTION;
         }
         &self.actions[self.action_index]
+    }
+    pub fn draw(&self, assets: &Assets, ctx: &DrawCtx) {
+        let time = (self.anim_time * 1000.0) as u32;
+        draw_texture_ex(
+            &self.animation.animations[self.animation_index].get_at_time(time),
+            self.draw_pos.x * ctx.scale_factor
+                + (-ctx.camera_pos.x * ctx.scale_factor + SCREEN_WIDTH * ctx.scale_factor / 2.0)
+                    .floor(),
+            self.draw_pos.y * ctx.scale_factor
+                + (-ctx.camera_pos.y * ctx.scale_factor + SCREEN_HEIGHT * ctx.scale_factor / 2.0)
+                    .floor(),
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(
+                    self.animation.animations[0].get_at_time(0).size() * ctx.scale_factor,
+                ),
+                ..Default::default()
+            },
+        );
     }
 }
 
@@ -86,6 +106,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
         animation_playing: false,
         anim_time: 0.0,
         timer: 0.0,
+        draw_over: false,
     }
 }
 pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -121,6 +142,32 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
         animation_playing: false,
         anim_time: 0.0,
         timer: 0.0,
+        draw_over: false,
+    }
+}
+pub fn fireplace<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
+    Character {
+        draw_pos: vec2(x as f32, y as f32) * 16.0,
+        actions: vec![
+            (ActionCondition::PlayerHasTag(Tag::ClosedDoor), Action::Noop),
+            (
+                ActionCondition::PlayerInteract(
+                    "E: light fireplace",
+                    vec2(x as f32 + 0.5, (y + 2) as f32) * 16.0,
+                ),
+                Action::SetPlayingAnimation(true),
+            ),
+            (ActionCondition::AlwaysChange, Action::ChangeAnimation(1)),
+        ],
+        animation: &assets.fireplace,
+        x,
+        y,
+        action_index: 0,
+        animation_index: 0,
+        animation_playing: false,
+        anim_time: 0.0,
+        timer: 0.0,
+        draw_over: true,
     }
 }
 

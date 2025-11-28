@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use crate::{assets::Assets, utils::*};
+use crate::{assets::Assets, characters::Character, utils::*};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Tag {
@@ -75,7 +75,7 @@ impl Player {
             state: PlayerState::Idle,
         }
     }
-    pub fn update(&mut self, delta_time: f32, assets: &Assets) {
+    pub fn update(&mut self, delta_time: f32, assets: &Assets, characters: &mut Vec<Character>) {
         self.time += delta_time;
         match self.state {
             PlayerState::Idle => {
@@ -85,9 +85,15 @@ impl Player {
                     let dir = self.direction.to_vec2();
                     let new_x = self.x.saturating_add_signed(dir.x as isize);
                     let new_y = self.y.saturating_add_signed(dir.y as isize);
+
                     if assets.map.walls.0[new_x + new_y * assets.map.walls.1] == 0 {
-                        (self.x, self.y) = (new_x, new_y);
-                        self.state = PlayerState::Moving;
+                        if let Some(character) =
+                            characters.iter_mut().find(|f| f.x == new_x && f.y == new_y)
+                        {
+                        } else {
+                            (self.x, self.y) = (new_x, new_y);
+                            self.state = PlayerState::Moving;
+                        }
                     }
                 }
             }

@@ -24,6 +24,7 @@ impl<'a> Game<'a> {
             player: Player::new(assets.map.special.find_tile(0)),
             time: 0.0,
             characters: vec![
+                fireplace(assets.map.special.find_tile(3), assets),
                 door(assets.map.special.find_tile(2), assets),
                 raincoat_ferret(assets.map.special.find_tile(1), assets),
             ],
@@ -37,9 +38,9 @@ impl<'a> Game<'a> {
         let scale_factor = (screen_width / SCREEN_WIDTH).min(screen_height / SCREEN_HEIGHT);
         let delta_time = get_frame_time();
         self.time += delta_time;
-        let ctx = DrawCtx {
+        let mut ctx = DrawCtx {
             screen_size: vec2(screen_width, screen_height),
-            camera_pos: self.player.draw_pos,
+            camera_pos: self.player.draw_pos.floor(),
             scale_factor,
             assets: &self.assets,
         };
@@ -57,7 +58,9 @@ impl<'a> Game<'a> {
                 },
             );
         } else {
-            self.player.update(delta_time, self.assets);
+            self.player
+                .update(delta_time, self.assets, &mut self.characters);
+            ctx.camera_pos = self.player.draw_pos.floor();
             let map = self
                 .assets
                 .map
@@ -70,12 +73,12 @@ impl<'a> Game<'a> {
             // i did this by hand and it uses a lot of magic numbers, mb
             draw_texture_ex(
                 &self.assets.vision_cones,
-                -self.player.draw_pos.x * scale_factor
+                -self.player.draw_pos.x.floor() * scale_factor
                     + SCREEN_WIDTH * scale_factor / 2.0
                     + SCREEN_WIDTH * scale_factor / 2.0
                     - 118.0 * scale_factor
                     - 12.0 * scale_factor,
-                -self.player.draw_pos.y * scale_factor
+                -self.player.draw_pos.y.floor() * scale_factor
                     + SCREEN_HEIGHT * scale_factor / 2.0
                     + SCREEN_HEIGHT * scale_factor / 2.0
                     - 12.0 * scale_factor,
@@ -90,12 +93,12 @@ impl<'a> Game<'a> {
                     .assets
                     .snow_blowing
                     .get_at_time((self.time * 1000.0) as u32),
-                -self.player.draw_pos.x * scale_factor
+                -self.player.draw_pos.x.floor() * scale_factor
                     + SCREEN_WIDTH * scale_factor / 2.0
                     + SCREEN_WIDTH * scale_factor / 2.0
                     - 118.0 * scale_factor
                     - 12.0 * scale_factor,
-                -self.player.draw_pos.y * scale_factor
+                -self.player.draw_pos.y.floor() * scale_factor
                     + SCREEN_HEIGHT * scale_factor / 2.0
                     + SCREEN_HEIGHT * scale_factor / 2.0
                     - 12.0 * scale_factor,
@@ -107,9 +110,11 @@ impl<'a> Game<'a> {
             );
             draw_texture_ex(
                 &map.texture,
-                (-self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0)
+                (-self.player.draw_pos.x.floor() * scale_factor
+                    + SCREEN_WIDTH * scale_factor / 2.0)
                     .floor(),
-                (-self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0)
+                (-self.player.draw_pos.y.floor() * scale_factor
+                    + SCREEN_HEIGHT * scale_factor / 2.0)
                     .floor(),
                 WHITE,
                 DrawTextureParams {
@@ -118,26 +123,8 @@ impl<'a> Game<'a> {
                 },
             );
             self.player.draw(self.assets, scale_factor);
-            for character in self.characters.iter().rev() {
-                let time = (character.anim_time * 1000.0) as u32;
-                draw_texture_ex(
-                    &character.animation.animations[character.animation_index].get_at_time(time),
-                    character.draw_pos.x * scale_factor
-                        + (-self.player.draw_pos.x * scale_factor
-                            + SCREEN_WIDTH * scale_factor / 2.0)
-                            .floor(),
-                    character.draw_pos.y * scale_factor
-                        + (-self.player.draw_pos.y * scale_factor
-                            + SCREEN_HEIGHT * scale_factor / 2.0)
-                            .floor(),
-                    WHITE,
-                    DrawTextureParams {
-                        dest_size: Some(
-                            character.animation.animations[0].get_at_time(0).size() * scale_factor,
-                        ),
-                        ..Default::default()
-                    },
-                );
+            for character in self.characters.iter().filter(|f| !f.draw_over).rev() {
+                character.draw(self.assets, &ctx);
             }
             let map = self
                 .assets
@@ -148,9 +135,11 @@ impl<'a> Game<'a> {
                 .unwrap();
             draw_texture_ex(
                 &map.texture,
-                (-self.player.draw_pos.x * scale_factor + SCREEN_WIDTH * scale_factor / 2.0)
+                (-self.player.draw_pos.x.floor() * scale_factor
+                    + SCREEN_WIDTH * scale_factor / 2.0)
                     .floor(),
-                (-self.player.draw_pos.y * scale_factor + SCREEN_HEIGHT * scale_factor / 2.0)
+                (-self.player.draw_pos.y.floor() * scale_factor
+                    + SCREEN_HEIGHT * scale_factor / 2.0)
                     .floor(),
                 WHITE,
                 DrawTextureParams {
@@ -158,6 +147,9 @@ impl<'a> Game<'a> {
                     ..Default::default()
                 },
             );
+            for character in self.characters.iter().filter(|f| f.draw_over).rev() {
+                character.draw(self.assets, &ctx);
+            }
         }
         for character in self.characters.iter_mut() {
             character.timer += delta_time;
@@ -170,7 +162,7 @@ impl<'a> Game<'a> {
                 ActionCondition::PlayerHasTag(tag) => self.player.tags.contains(tag),
                 ActionCondition::PlayerInteract(text, pos) => {
                     let dist = self.player.draw_pos.distance_squared(*pos);
-                    if dist <= 256.0 {
+                    if dist <= 350.0 {
                         draw_tooltip(&text, &ctx)
                     } else {
                         false

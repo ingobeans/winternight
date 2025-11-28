@@ -16,6 +16,7 @@ pub struct Assets {
     pub snow_blowing: Animation,
     pub raincoat_ferret: AnimationsGroup,
     pub door: AnimationsGroup,
+    pub fireplace: AnimationsGroup,
     pub font: Font,
     pub screens: Vec<Animation>,
 }
@@ -35,6 +36,7 @@ impl Assets {
                 "../assets/raincoat_ferret.ase"
             )),
             door: AnimationsGroup::from_file(include_bytes!("../assets/door.ase")),
+            fireplace: AnimationsGroup::from_file(include_bytes!("../assets/fireplace.ase")),
             font: load_ttf_font_from_bytes(include_bytes!("../assets/tinos.ttf")).unwrap(),
             screens: vec![
                 Animation::from_file(include_bytes!("../assets/screens/raincoat_ferret.ase")),
