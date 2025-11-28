@@ -192,11 +192,17 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             ),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetInteractMessage(Some("Thanks!")),
+                Action::MoveTo(assets.map.special.find_tile(4)),
             ),
             (
-                ActionCondition::AlwaysChange,
-                Action::MoveTo(assets.map.special.find_tile(4)),
+                ActionCondition::ReachedDestination,
+                Action::SetInteractMessage(Some(
+                    "If its not too much to ask, I would be\nFOREVER thankful if you'd light the fireplace.",
+                )),
+            ),
+            (
+                ActionCondition::PlayerHasTag(Tag::LightFire),
+                Action::SetInteractMessage(None),
             ),
         ],
         animation: Some(&assets.raincoat_ferret),
@@ -265,6 +271,10 @@ pub fn fireplace<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a
                 Action::SetPlayingAnimation(true),
             ),
             (ActionCondition::AlwaysChange, Action::ChangeAnimation(1)),
+            (
+                ActionCondition::AlwaysChange,
+                Action::GiveTag(Tag::LightFire),
+            ),
         ],
         animation: Some(&assets.fireplace),
         x,
@@ -325,7 +335,7 @@ pub fn draw_dialogue(text: &str, name: &str, ctx: &DrawCtx) -> bool {
         None,
         TextParams {
             font: Some(&ctx.assets.font),
-            font_size: (12.0 * ctx.scale_factor) as u16,
+            font_size: (10.0 * ctx.scale_factor) as u16,
             ..Default::default()
         },
     );

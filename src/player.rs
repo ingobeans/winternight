@@ -10,6 +10,7 @@ use crate::{
 pub enum Tag {
     OpenedDoor,
     ClosedDoor,
+    LightFire,
 }
 
 #[derive(Clone, Copy)]
