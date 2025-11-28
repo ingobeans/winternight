@@ -233,6 +233,7 @@ impl<'a> Game<'a> {
                         character.animation_index = *index;
                         character.anim_time = 0.0;
                     }
+                    Action::SetName(name) => character.name = name,
                     Action::SetPlayingAnimation(value) => character.animation_playing = *value,
                     Action::ShowScreen(index) => self.screen = Some(*index),
                     Action::HideScreen => self.screen = None,

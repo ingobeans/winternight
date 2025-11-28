@@ -133,6 +133,7 @@ pub enum Action {
     MoveTo((usize, usize)),
     HideScreen,
     SetCollision(bool),
+    SetName(&'static str),
     Noop,
 }
 
@@ -181,6 +182,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 Action::TeleportPlayer(x + 1, y + 1),
             ),
             (ActionCondition::AlwaysChange, Action::Teleport(x, y + 1)),
+            (ActionCondition::AlwaysChange, Action::SetName("Ferret")),
             (
                 ActionCondition::AlwaysChange,
                 Action::GiveTag(Tag::ClosedDoor),
@@ -195,15 +197,16 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 Action::MoveTo(assets.map.special.find_tile(4)),
             ),
             (
-                ActionCondition::AnimationFinish,
-                Action::SetPlayingAnimation(false),
-            ),
-            (
                 ActionCondition::ReachedDestination,
                 Action::SetInteractMessage(Some(
                     "If its not too much to ask, I would be\nFOREVER thankful if you'd light the fireplace.",
                 )),
             ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetPlayingAnimation(false),
+            ),
+            (ActionCondition::AlwaysChange, Action::SetAnimationTime(0.0)),
             (
                 ActionCondition::PlayerHasTag(Tag::LightFire),
                 Action::SetInteractMessage(None),
