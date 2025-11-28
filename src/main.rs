@@ -44,6 +44,7 @@ impl<'a> Game<'a> {
             scale_factor,
             assets: &self.assets,
         };
+        let interacting_with_any = any_interacting(&self.characters);
         if let Some(screen) = &self.screen {
             let screen = &self.assets.screens[*screen];
             let size = screen.get_at_time(0).size() * scale_factor * 4.0;
@@ -58,8 +59,10 @@ impl<'a> Game<'a> {
                 },
             );
         } else {
-            self.player
-                .update(delta_time, self.assets, &mut self.characters);
+            if interacting_with_any.is_none() {
+                self.player
+                    .update(delta_time, self.assets, &mut self.characters);
+            }
             ctx.camera_pos = self.player.draw_pos.floor();
             let map = self
                 .assets
@@ -156,6 +159,13 @@ impl<'a> Game<'a> {
             if character.animation_playing {
                 character.anim_time += delta_time;
             }
+            if character.interacting
+                && let Some(text) = character.interact_message
+            {
+                if draw_dialogue(text, character.name, &ctx) {
+                    character.interacting = false;
+                }
+            }
             let mut set_time = None;
             let action = character.get_action();
             if match &action.0 {
@@ -184,7 +194,7 @@ impl<'a> Game<'a> {
                         false
                     }
                 }
-                ActionCondition::Dialogue(text, name) => draw_dialogue(text, name, &ctx),
+                ActionCondition::Dialogue(text) => draw_dialogue(text, character.name, &ctx),
                 ActionCondition::Time(time) => character.timer >= *time,
             } {
                 match &action.1 {
@@ -195,6 +205,7 @@ impl<'a> Game<'a> {
                     Action::HideScreen => self.screen = None,
                     Action::GiveTag(tag) => self.player.tags.push(*tag),
                     Action::SetAnimationTime(time) => set_time = Some(*time),
+                    Action::SetInteractMessage(msg) => character.interact_message = *msg,
                     Action::Teleport(x, y) => {
                         let x = *x;
                         let y = *y;

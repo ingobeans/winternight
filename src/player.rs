@@ -1,6 +1,10 @@
 use macroquad::prelude::*;
 
-use crate::{assets::Assets, characters::Character, utils::*};
+use crate::{
+    assets::Assets,
+    characters::{Character, any_interacting},
+    utils::*,
+};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Tag {
@@ -77,6 +81,7 @@ impl Player {
     }
     pub fn update(&mut self, delta_time: f32, assets: &Assets, characters: &mut Vec<Character>) {
         self.time += delta_time;
+        let interacting_with_any = any_interacting(&characters).is_some();
         match self.state {
             PlayerState::Idle => {
                 let axis = get_input_axis();
@@ -90,6 +95,9 @@ impl Player {
                         if let Some(character) =
                             characters.iter_mut().find(|f| f.x == new_x && f.y == new_y)
                         {
+                            if !interacting_with_any && character.interact_message.is_some() {
+                                character.interacting = true;
+                            }
                         } else {
                             (self.x, self.y) = (new_x, new_y);
                             self.state = PlayerState::Moving;

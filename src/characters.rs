@@ -1,12 +1,21 @@
-use std::collections::HashMap;
-
 use crate::{
     assets::{AnimationsGroup, Assets},
     player::Tag,
     utils::*,
 };
-use asefile::AsepriteFile;
 use macroquad::prelude::*;
+
+pub fn any_interacting(characters: &[Character]) -> Option<usize> {
+    characters.iter().position(|f| {
+        f.interacting || {
+            let action = f.get_action();
+            match &action.0 {
+                ActionCondition::Dialogue(_) => true,
+                _ => false,
+            }
+        }
+    })
+}
 
 pub struct Character<'a> {
     pub draw_pos: Vec2,
@@ -22,6 +31,7 @@ pub struct Character<'a> {
     pub draw_over: bool,
     pub interact_message: Option<&'static str>,
     pub interacting: bool,
+    pub name: &'static str,
 }
 impl<'a> Character<'a> {
     pub fn get_action(&self) -> &(ActionCondition, Action) {
@@ -61,7 +71,7 @@ pub enum ActionCondition {
     PlayerInteract(&'static str, Vec2),
     PlayerHasTag(Tag),
     AnimationFinish,
-    Dialogue(&'static str, &'static str),
+    Dialogue(&'static str),
     Time(f32),
 }
 pub enum Action {
@@ -72,6 +82,7 @@ pub enum Action {
     SetPlayingAnimation(bool),
     SetAnimationTime(f32),
     ShowScreen(usize),
+    SetInteractMessage(Option<&'static str>),
     HideScreen,
     Noop,
 }
@@ -92,6 +103,7 @@ pub static BASE_CHARACTER: Character = Character {
     draw_over: false,
     interacting: false,
     interact_message: None,
+    name: "",
 };
 
 pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -103,12 +115,11 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             (
                 ActionCondition::Dialogue(
                     "Hello kind stranger! I have lost my way\nin the snowstorm. It is cold and dark.",
-                    "Ferret in a raincoat",
                 ),
                 Action::Noop,
             ),
             (
-                ActionCondition::Dialogue("Can I please come inside?", "Ferret in a raincoat"),
+                ActionCondition::Dialogue("Can I please come inside?"),
                 Action::Noop,
             ),
             (ActionCondition::Time(0.5), Action::ShowScreen(1)),
@@ -130,10 +141,15 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::AnimationFinish,
                 Action::SetPlayingAnimation(false),
             ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetInteractMessage(Some("Thanks!")),
+            ),
         ],
         animation: Some(&assets.raincoat_ferret),
         x,
         y,
+        name: "Ferret in a raincoat",
         ..BASE_CHARACTER
     }
 }
