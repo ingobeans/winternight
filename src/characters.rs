@@ -295,6 +295,29 @@ pub fn mother_ferret<'a>(assets: &'a Assets) -> Character<'a> {
         ..BASE_CHARACTER
     }
 }
+pub fn child_ferret<'a>(assets: &'a Assets, id: usize) -> Character<'a> {
+    let (x, y) = assets.map.special.find_tile(1);
+    Character {
+        draw_pos: vec2(0 as f32, 0 as f32) * 16.0,
+        actions: vec![
+            (
+                ActionCondition::PlayerHasTag(Tag::FamilyShouldArrive),
+                Action::Teleport(x, y),
+            ),
+            (
+                ActionCondition::PlayerHasTag(Tag::ClosedDoor2),
+                Action::Teleport(x - 1, y + 1),
+            ),
+        ],
+        name: "Child Ferret",
+        animation: Some(&assets.child_ferret[id]),
+        has_collision: false,
+        draw_offset: vec2(-5.0 + 10.0 * id as f32 + 3.0, 0.0),
+        x,
+        y,
+        ..BASE_CHARACTER
+    }
+}
 pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
     Character {
         draw_pos: vec2(x as f32, y as f32) * 16.0,

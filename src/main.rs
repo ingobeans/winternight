@@ -27,6 +27,8 @@ impl<'a> Game<'a> {
                 fireplace(assets.map.special.find_tile(3), assets),
                 door(assets.map.special.find_tile(2), assets),
                 raincoat_ferret(assets.map.special.find_tile(1), assets),
+                child_ferret(assets, 0),
+                child_ferret(assets, 1),
                 mother_ferret(assets),
                 //test_character(assets.map.special.find_tile(4), assets),
             ],

@@ -16,6 +16,7 @@ pub struct Assets {
     pub snow_blowing: Animation,
     pub raincoat_ferret: AnimationsGroup,
     pub mother_ferret: AnimationsGroup,
+    pub child_ferret: [AnimationsGroup; 2],
     pub door: AnimationsGroup,
     pub fireplace: AnimationsGroup,
     pub font: Font,
@@ -39,6 +40,10 @@ impl Assets {
             mother_ferret: AnimationsGroup::from_file(include_bytes!(
                 "../assets/mother_ferret.ase"
             )),
+            child_ferret: [
+                AnimationsGroup::from_file(include_bytes!("../assets/child_ferret1.ase")),
+                AnimationsGroup::from_file(include_bytes!("../assets/child_ferret2.ase")),
+            ],
             door: AnimationsGroup::from_file(include_bytes!("../assets/door.ase")),
             fireplace: AnimationsGroup::from_file(include_bytes!("../assets/fireplace.ase")),
             font: load_ttf_font_from_bytes(include_bytes!("../assets/tinos.ttf")).unwrap(),
