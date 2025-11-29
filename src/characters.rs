@@ -134,7 +134,7 @@ pub enum Action {
     ChangeAnimation(usize),
     Teleport(usize, usize),
     TeleportPlayer(usize, usize),
-    SetPlayingAnimation(bool),
+    SetAnimationPlaying(bool),
     SetAnimationTime(f32),
     ShowScreen(usize),
     SetInteractMessage(Option<&'static str>),
@@ -198,7 +198,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             ),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (ActionCondition::AnimationFinish, Action::ChangeAnimation(3)),
             (
@@ -213,7 +213,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             ),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(false),
+                Action::SetAnimationPlaying(false),
             ),
             (ActionCondition::AlwaysChange, Action::SetAnimationTime(0.0)),
             (
@@ -224,7 +224,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             (ActionCondition::AlwaysChange, Action::ChangeAnimation(6)),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (ActionCondition::AnimationFinish, Action::Noop),
             (
@@ -238,11 +238,11 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             (ActionCondition::AlwaysChange, Action::SetCollision(false)),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (
                 ActionCondition::AnimationFinish,
-                Action::SetPlayingAnimation(false),
+                Action::SetAnimationPlaying(false),
             ),
             (
                 ActionCondition::Time(2.0),
@@ -297,7 +297,7 @@ pub fn mother_ferret<'a>(assets: &'a Assets) -> Character<'a> {
             (ActionCondition::Time(3.0), Action::Noop),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (
                 ActionCondition::AlwaysChange,
@@ -305,7 +305,7 @@ pub fn mother_ferret<'a>(assets: &'a Assets) -> Character<'a> {
             ),
             (
                 ActionCondition::ReachedDestination,
-                Action::SetPlayingAnimation(false),
+                Action::SetAnimationPlaying(false),
             ),
             (ActionCondition::AlwaysChange, Action::SetAnimationTime(0.0)),
             (ActionCondition::Time(0.5), Action::ChangeAnimation(4)),
@@ -313,11 +313,15 @@ pub fn mother_ferret<'a>(assets: &'a Assets) -> Character<'a> {
             (ActionCondition::AlwaysChange, Action::SetOverlayed(true)),
             (
                 ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (
                 ActionCondition::AnimationFinish,
-                Action::SetPlayingAnimation(false),
+                Action::SetAnimationPlaying(false),
+            ),
+            (
+                ActionCondition::Time(2.0),
+                Action::GiveTag(Tag::ChildrenWantChocolate),
             ),
         ],
         animation_index: 3,
@@ -333,45 +337,67 @@ pub fn child_ferret<'a>(assets: &'a Assets, id: usize) -> Character<'a> {
     let (x, y) = assets.map.special.find_tile(1);
     let mut play_pos = assets.map.special.find_tile(4);
     play_pos.0 += 1;
-    Character {
-        draw_pos: vec2(0 as f32, 0 as f32) * 16.0,
-        actions: vec![
-            (
-                ActionCondition::PlayerHasTag(Tag::FamilyShouldArrive),
-                Action::Teleport(x, y),
-            ),
-            (
-                ActionCondition::PlayerHasTag(Tag::ClosedDoor2),
-                Action::Teleport(x - 1, y + 1),
-            ),
-            // (ActionCondition::AlwaysChange, Action::Noop),
-            // (
-            //     ActionCondition::AlwaysChange,
-            //     Action::Teleport(x - 1, y + 1),
-            // ),
-            (ActionCondition::Time(0.25 + id as f32 * 0.75), Action::Noop),
-            (
-                ActionCondition::AlwaysChange,
-                Action::SetPlayingAnimation(true),
-            ),
-            (ActionCondition::AlwaysChange, Action::MoveTo(play_pos)),
-            (
-                ActionCondition::ReachedDestination,
-                Action::MoveTo((play_pos.0, play_pos.1 + 2)),
-            ),
-            (
-                ActionCondition::ReachedDestination,
-                Action::MoveTo((play_pos.0 - 2, play_pos.1 + 2)),
-            ),
-            (
-                ActionCondition::ReachedDestination,
-                Action::MoveTo((play_pos.0 - 2, play_pos.1)),
-            ),
-            (
-                ActionCondition::ReachedDestination,
+
+    let mut actions = vec![
+        (
+            ActionCondition::PlayerHasTag(Tag::FamilyShouldArrive),
+            Action::Teleport(x, y),
+        ),
+        (
+            ActionCondition::PlayerHasTag(Tag::ClosedDoor2),
+            Action::Teleport(x - 1, y + 1),
+        ),
+        // (ActionCondition::AlwaysChange, Action::Noop),
+        // (
+        //     ActionCondition::AlwaysChange,
+        //     Action::Teleport(x - 1, y + 1),
+        // ),
+        (ActionCondition::Time(0.25 + id as f32 * 0.75), Action::Noop),
+        (
+            ActionCondition::AlwaysChange,
+            Action::SetAnimationPlaying(true),
+        ),
+        (ActionCondition::AlwaysChange, Action::MoveTo(play_pos)),
+        (
+            ActionCondition::ReachedDestination,
+            Action::MoveTo((play_pos.0, play_pos.1 + 2)),
+        ),
+        (
+            ActionCondition::ReachedDestination,
+            Action::MoveTo((play_pos.0 - 2, play_pos.1 + 2)),
+        ),
+        (
+            ActionCondition::ReachedDestination,
+            Action::MoveTo((play_pos.0 - 2, play_pos.1)),
+        ),
+        (ActionCondition::ReachedDestination, Action::Noop),
+        (
+            ActionCondition::Else(
+                Box::new(ActionCondition::PlayerHasTag(Tag::ChildrenWantChocolate)),
                 Action::SetActionIndex(4),
             ),
-        ],
+            Action::Noop,
+        ),
+        (
+            ActionCondition::AlwaysChange,
+            Action::SetAnimationPlaying(false),
+        ),
+        (ActionCondition::AlwaysChange, Action::ChangeAnimation(0)),
+    ];
+    if id == 0 {
+        let mut new = vec![
+            (ActionCondition::Time(2.5), Action::Noop),
+            (
+                ActionCondition::Dialogue("We want hot chocolate!"),
+                Action::Noop,
+            ),
+        ];
+        actions.append(&mut new);
+    }
+
+    Character {
+        draw_pos: vec2(0 as f32, 0 as f32) * 16.0,
+        actions,
         name: "Child Ferret",
         animation: Some(&assets.child_ferret[id]),
         has_collision: false,
@@ -394,11 +420,11 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
                     "E: open door",
                     vec2(x as f32, (y + 1) as f32) * 16.0,
                 ),
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (
                 ActionCondition::AnimationFinish,
-                Action::SetPlayingAnimation(false),
+                Action::SetAnimationPlaying(false),
             ),
             (
                 ActionCondition::AlwaysChange,
@@ -422,11 +448,11 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
                     "E: open door",
                     vec2(x as f32, (y + 1) as f32) * 16.0,
                 ),
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (
                 ActionCondition::AnimationFinish,
-                Action::SetPlayingAnimation(false),
+                Action::SetAnimationPlaying(false),
             ),
             (
                 ActionCondition::AlwaysChange,
@@ -470,7 +496,7 @@ pub fn fireplace<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a
                     "E: light fireplace",
                     vec2(x as f32 + 0.5, (y + 2) as f32) * 16.0,
                 ),
-                Action::SetPlayingAnimation(true),
+                Action::SetAnimationPlaying(true),
             ),
             (ActionCondition::AlwaysChange, Action::ChangeAnimation(1)),
             (

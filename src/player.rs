@@ -14,6 +14,7 @@ pub enum Tag {
     ClosedDoor2,
     LightFire,
     FamilyShouldArrive,
+    ChildrenWantChocolate,
 }
 
 #[derive(Clone, Copy)]
