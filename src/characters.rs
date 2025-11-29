@@ -78,6 +78,7 @@ pub struct Character<'a> {
     pub moving_to: Option<(usize, usize)>,
     pub direction: Direction,
     pub has_collision: bool,
+    pub draw_offset: Vec2,
 }
 impl<'a> Character<'a> {
     pub fn get_action(&self) -> &(ActionCondition, Action) {
@@ -91,11 +92,11 @@ impl<'a> Character<'a> {
         if let Some(animation) = self.animation {
             draw_texture_ex(
                 &animation.animations[self.animation_index].get_at_time(time),
-                self.draw_pos.x * ctx.scale_factor
+                (self.draw_pos.x + self.draw_offset.x) * ctx.scale_factor
                     + (-ctx.camera_pos.x * ctx.scale_factor
                         + SCREEN_WIDTH * ctx.scale_factor / 2.0)
                         .floor(),
-                self.draw_pos.y * ctx.scale_factor
+                (self.draw_pos.y + self.draw_offset.y) * ctx.scale_factor
                     + (-ctx.camera_pos.y * ctx.scale_factor
                         + SCREEN_HEIGHT * ctx.scale_factor / 2.0)
                         .floor(),
@@ -157,6 +158,7 @@ pub static BASE_CHARACTER: Character = Character {
     name: "",
     direction: Direction::Left,
     has_collision: true,
+    draw_offset: Vec2::ZERO,
 };
 
 pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
@@ -211,13 +213,16 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::PlayerHasTag(Tag::LightFire),
                 Action::SetInteractMessage(None),
             ),
-            (
-                ActionCondition::AlwaysChange,
-                Action::MoveTo(assets.map.special.find_tile(5)),
-            ),
+            (ActionCondition::AlwaysChange, Action::SetAnimationTime(0.0)),
+            (ActionCondition::AlwaysChange, Action::ChangeAnimation(6)),
             (
                 ActionCondition::AlwaysChange,
                 Action::SetPlayingAnimation(true),
+            ),
+            (ActionCondition::AnimationFinish, Action::Noop),
+            (
+                ActionCondition::AlwaysChange,
+                Action::MoveTo(assets.map.special.find_tile(5)),
             ),
             (
                 ActionCondition::ReachedDestination,
@@ -237,6 +242,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
         x,
         y,
         name: "Ferret in a raincoat",
+        draw_offset: vec2(-16.0, -16.0),
         ..BASE_CHARACTER
     }
 }
