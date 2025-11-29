@@ -243,6 +243,7 @@ impl<'a> Game<'a> {
                 let mut should_increment_action_index = true;
                 match &action.1 {
                     Action::Noop => {}
+                    Action::SetOverlayed(value) => character.draw_over = *value,
                     Action::SetActionIndex(index) => {
                         character.action_index = *index;
                         should_increment_action_index = false;

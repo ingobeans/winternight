@@ -126,6 +126,7 @@ pub enum ActionCondition {
     Time(f32),
 }
 pub enum Action {
+    SetOverlayed(bool),
     SetActionIndex(usize),
     GiveTag(Tag),
     ChangeAnimation(usize),
@@ -291,11 +292,38 @@ pub fn mother_ferret<'a>(assets: &'a Assets) -> Character<'a> {
                 ActionCondition::AlwaysChange,
                 Action::GiveTag(Tag::ClosedDoor2),
             ),
+            (ActionCondition::Time(3.0), Action::Noop),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetPlayingAnimation(true),
+            ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::MoveTo(assets.map.special.find_tile(6)),
+            ),
+            (
+                ActionCondition::ReachedDestination,
+                Action::SetPlayingAnimation(false),
+            ),
+            (ActionCondition::AlwaysChange, Action::SetAnimationTime(0.0)),
+            (ActionCondition::Time(0.5), Action::ChangeAnimation(4)),
+            (ActionCondition::AlwaysChange, Action::SetCollision(false)),
+            (ActionCondition::AlwaysChange, Action::SetOverlayed(true)),
+            (
+                ActionCondition::AlwaysChange,
+                Action::SetPlayingAnimation(true),
+            ),
+            (
+                ActionCondition::AnimationFinish,
+                Action::SetPlayingAnimation(false),
+            ),
         ],
+        animation_index: 3,
         name: "Ferret Mother",
         animation: Some(&assets.mother_ferret),
         x,
         y,
+        draw_offset: vec2(-16.0, -32.0),
         ..BASE_CHARACTER
     }
 }
