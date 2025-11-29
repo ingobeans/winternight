@@ -15,6 +15,7 @@ pub struct Assets {
     pub vision_cones: Texture2D,
     pub snow_blowing: Animation,
     pub raincoat_ferret: AnimationsGroup,
+    pub mother_ferret: AnimationsGroup,
     pub door: AnimationsGroup,
     pub fireplace: AnimationsGroup,
     pub font: Font,
@@ -35,6 +36,9 @@ impl Assets {
             raincoat_ferret: AnimationsGroup::from_file(include_bytes!(
                 "../assets/raincoat_ferret.ase"
             )),
+            mother_ferret: AnimationsGroup::from_file(include_bytes!(
+                "../assets/mother_ferret.ase"
+            )),
             door: AnimationsGroup::from_file(include_bytes!("../assets/door.ase")),
             fireplace: AnimationsGroup::from_file(include_bytes!("../assets/fireplace.ase")),
             font: load_ttf_font_from_bytes(include_bytes!("../assets/tinos.ttf")).unwrap(),
@@ -43,6 +47,8 @@ impl Assets {
                 Animation::from_file(include_bytes!(
                     "../assets/screens/raincoat_ferret_happy.ase"
                 )),
+                Animation::from_file(include_bytes!("../assets/screens/ferret_family.ase")),
+                Animation::from_file(include_bytes!("../assets/screens/ferret_family_happy.ase")),
             ],
         }
     }

@@ -237,6 +237,10 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
                 ActionCondition::AnimationFinish,
                 Action::SetPlayingAnimation(false),
             ),
+            (
+                ActionCondition::Time(2.0),
+                Action::GiveTag(Tag::FamilyShouldArrive),
+            ),
         ],
         animation: Some(&assets.raincoat_ferret),
         x,
@@ -246,10 +250,59 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
         ..BASE_CHARACTER
     }
 }
+pub fn mother_ferret<'a>(assets: &'a Assets) -> Character<'a> {
+    let (x, y) = assets.map.special.find_tile(1);
+    Character {
+        draw_pos: vec2(0 as f32, 0 as f32) * 16.0,
+        actions: vec![
+            (
+                ActionCondition::PlayerHasTag(Tag::FamilyShouldArrive),
+                Action::Teleport(x, y),
+            ),
+            (
+                ActionCondition::PlayerHasTag(Tag::OpenedDoor2),
+                Action::Noop,
+            ),
+            (ActionCondition::Time(0.8), Action::Noop),
+            (
+                ActionCondition::Dialogue(
+                    "Hi! My boys and I were out playing when this\nstorm struck!",
+                ),
+                Action::Noop,
+            ),
+            (
+                ActionCondition::Dialogue(
+                    "They are cold and tired. May we please\ncome inside and ride out the storm?",
+                ),
+                Action::Noop,
+            ),
+            (ActionCondition::Time(0.5), Action::ShowScreen(3)),
+            (ActionCondition::Time(1.0), Action::HideScreen),
+            (
+                ActionCondition::AlwaysChange,
+                Action::TeleportPlayer(x + 1, y + 1),
+            ),
+            (ActionCondition::AlwaysChange, Action::Teleport(x, y + 1)),
+            (
+                ActionCondition::AlwaysChange,
+                Action::GiveTag(Tag::ClosedDoor2),
+            ),
+        ],
+        name: "Ferret Mother",
+        animation: Some(&assets.mother_ferret),
+        x,
+        y,
+        ..BASE_CHARACTER
+    }
+}
 pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
     Character {
         draw_pos: vec2(x as f32, y as f32) * 16.0,
         actions: vec![
+            (
+                ActionCondition::Dialogue("*knock* *knock* *knock*"),
+                Action::Noop,
+            ),
             (
                 ActionCondition::PlayerInteract(
                     "E: open door",
@@ -270,7 +323,36 @@ pub fn door<'a>((x, y): (usize, usize), assets: &'a Assets) -> Character<'a> {
                 ActionCondition::PlayerHasTag(Tag::ClosedDoor),
                 Action::SetAnimationTime(0.0),
             ),
+            (
+                ActionCondition::PlayerHasTag(Tag::FamilyShouldArrive),
+                Action::Noop,
+            ),
+            (
+                ActionCondition::Dialogue("*knock* *knock* *knock*"),
+                Action::Noop,
+            ),
+            (
+                ActionCondition::PlayerInteract(
+                    "E: open door",
+                    vec2(x as f32, (y + 1) as f32) * 16.0,
+                ),
+                Action::SetPlayingAnimation(true),
+            ),
+            (
+                ActionCondition::AnimationFinish,
+                Action::SetPlayingAnimation(false),
+            ),
+            (
+                ActionCondition::AlwaysChange,
+                Action::GiveTag(Tag::OpenedDoor2),
+            ),
+            (ActionCondition::AlwaysChange, Action::ShowScreen(2)),
+            (
+                ActionCondition::PlayerHasTag(Tag::ClosedDoor2),
+                Action::SetAnimationTime(0.0),
+            ),
         ],
+        name: "Door",
         animation: Some(&assets.door),
         x,
         y,
