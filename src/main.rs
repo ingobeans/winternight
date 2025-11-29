@@ -184,8 +184,12 @@ impl<'a> Game<'a> {
                 } else {
                     let delta = target - character.draw_pos;
                     character.direction = Direction::from_vec2(delta.normalize(), Vec2::ZERO);
-                    character.animation_index =
-                        character.animation.unwrap().tag_names[character.direction.name()];
+                    if let Some(i) = character
+                        .animation
+                        .and_then(|a| a.tag_names.get(character.direction.name()))
+                    {
+                        character.animation_index = *i;
+                    };
                     character.draw_pos = character
                         .draw_pos
                         .move_towards(target, delta_time * (16.0 / MOVE_TIME));
@@ -235,8 +239,13 @@ impl<'a> Game<'a> {
                 ActionCondition::Dialogue(text) => draw_dialogue(text, character.name, &ctx),
                 ActionCondition::Time(time) => character.timer >= *time,
             } {
+                let mut should_increment_action_index = true;
                 match &action.1 {
                     Action::Noop => {}
+                    Action::SetActionIndex(index) => {
+                        character.action_index = *index;
+                        should_increment_action_index = false;
+                    }
                     Action::MoveTo(pos) => character.moving_to = Some(*pos),
                     Action::ChangeAnimation(index) => {
                         character.animation_index = *index;
@@ -268,7 +277,9 @@ impl<'a> Game<'a> {
                     }
                 }
                 character.timer = 0.0;
-                character.action_index += 1;
+                if should_increment_action_index {
+                    character.action_index += 1;
+                }
                 if let Some(time) = set_time {
                     character.anim_time = time;
                 }
