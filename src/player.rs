@@ -104,6 +104,13 @@ impl Player {
                         {
                             if !interacting_with_any && character.interact_message.is_some() {
                                 character.interacting = true;
+                                let dir = Direction::from_vec2(
+                                    (self.draw_pos - character.draw_pos).normalize(),
+                                    Vec2::ZERO,
+                                )
+                                .name();
+                                character.animation_index =
+                                    character.animation.unwrap().tag_names[dir];
                             }
                         } else {
                             (self.x, self.y) = (new_x, new_y);
