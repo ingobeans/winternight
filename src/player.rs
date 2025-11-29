@@ -124,21 +124,13 @@ impl Player {
             }
             PlayerState::Moving => {
                 let target = vec2(self.x as f32, self.y as f32) * 16.0;
-                #[cfg(debug_assertions)]
-                let move_time = if is_key_down(KeyCode::LeftShift) {
-                    0.1
-                } else {
-                    MOVE_TIME
-                };
-                #[cfg(not(debug_assertions))]
-                let move_time = MOVE_TIME;
-                if self.draw_pos.distance(target) <= delta_time * (16.0 / move_time) {
+                if self.draw_pos.distance(target) <= delta_time * (16.0 / MOVE_TIME) {
                     self.draw_pos = target;
                     self.state = PlayerState::Idle;
                 } else {
                     self.draw_pos = self
                         .draw_pos
-                        .move_towards(target, delta_time * (16.0 / move_time));
+                        .move_towards(target, delta_time * (16.0 / MOVE_TIME));
                 }
             }
         }

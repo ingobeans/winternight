@@ -40,7 +40,13 @@ impl<'a> Game<'a> {
         clear_background(BLACK);
         let (screen_width, screen_height) = screen_size();
         let scale_factor = (screen_width / SCREEN_WIDTH).min(screen_height / SCREEN_HEIGHT);
-        let delta_time = get_frame_time();
+        let mut delta_time = get_frame_time();
+        #[cfg(debug_assertions)]
+        {
+            if is_key_down(KeyCode::LeftShift) {
+                delta_time *= 3.0;
+            }
+        }
         self.time += delta_time;
         let mut ctx = DrawCtx {
             screen_size: vec2(screen_width, screen_height),
