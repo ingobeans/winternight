@@ -209,8 +209,12 @@ impl<'a> Game<'a> {
                 }
             }
             let mut set_time = None;
-            let action = character.get_action();
-            if match &action.0 {
+            let (action_condition, action_event) = character.get_action();
+            let mut action_event = *action_event;
+            let mut check_condition = |action_condition: &ActionCondition| match action_condition {
+                ActionCondition::Else(_, _) => {
+                    panic!("recursive else actions are not allowed, sorry :(")
+                }
                 ActionCondition::ReachedDestination => reached_destination,
                 ActionCondition::PlayerHasTag(tag) => self.player.tags.contains(tag),
                 ActionCondition::PlayerInteract(text, pos) => {
@@ -239,9 +243,19 @@ impl<'a> Game<'a> {
                 }
                 ActionCondition::Dialogue(text) => draw_dialogue(text, character.name, &ctx),
                 ActionCondition::Time(time) => character.timer >= *time,
-            } {
+            };
+            let mut complex = || match action_condition {
+                ActionCondition::Else(cond, else_action) => {
+                    if !check_condition(&cond) {
+                        action_event = *else_action;
+                    }
+                    true
+                }
+                _ => check_condition(action_condition),
+            };
+            if complex() {
                 let mut should_increment_action_index = true;
-                match &action.1 {
+                match &action_event {
                     Action::Noop => {}
                     Action::SetOverlayed(value) => character.draw_over = *value,
                     Action::SetActionIndex(index) => {

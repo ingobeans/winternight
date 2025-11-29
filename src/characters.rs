@@ -116,6 +116,7 @@ impl<'a> Character<'a> {
 }
 
 pub enum ActionCondition {
+    Else(Box<ActionCondition>, Action),
     AlwaysChange,
     NeverChange,
     PlayerInteract(&'static str, Vec2),
@@ -125,6 +126,7 @@ pub enum ActionCondition {
     Dialogue(&'static str),
     Time(f32),
 }
+#[derive(Clone, Copy)]
 pub enum Action {
     SetOverlayed(bool),
     SetActionIndex(usize),
