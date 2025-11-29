@@ -26,10 +26,11 @@ pub fn pathfind(
     from: (usize, usize),
     to: (usize, usize),
     player_pos: (usize, usize),
+    has_collision: bool,
 ) -> Option<(Vec<(usize, usize)>, usize)> {
     pathfinding::prelude::astar(
         &from,
-        |p| generate_successors(assets, *p, player_pos),
+        |p| generate_successors(assets, *p, player_pos, has_collision),
         |&(x, y)| {
             ((to.0 as f32 - x as f32).powi(2) + (to.1 as f32 - y as f32).powi(2)).sqrt() as usize
         },
@@ -41,6 +42,7 @@ fn generate_successors(
     assets: &Assets,
     pos: (usize, usize),
     player_pos: (usize, usize),
+    has_collision: bool,
 ) -> SuccessorIterator {
     let (x, y) = pos;
     let mut candidates = vec![(x + 1, y), (x, y + 1)];
@@ -51,7 +53,8 @@ fn generate_successors(
         candidates.push((x, y - 1));
     }
     candidates.retain(|(cx, cy)| {
-        (*cx, *cy) != player_pos && assets.map.walls.0[cx + cy * assets.map.walls.1] == 0
+        (!has_collision || (*cx, *cy) != player_pos)
+            && assets.map.walls.0[cx + cy * assets.map.walls.1] == 0
     });
     fn map_function(p: (usize, usize)) -> ((usize, usize), usize) {
         (p, 1)

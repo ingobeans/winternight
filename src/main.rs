@@ -177,6 +177,7 @@ impl<'a> Game<'a> {
                         (character.x, character.y),
                         (*x, *y),
                         (self.player.x, self.player.y),
+                        character.has_collision,
                     );
                     if let Some(path) = path.and_then(|f| f.0.get(1).cloned()) {
                         (character.x, character.y) = path;
