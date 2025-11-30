@@ -1,0 +1,36 @@
+name: Build wasm and deploy to pages
+
+on: workflow_dispatch
+
+jobs:
+  publish:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+
+      - name: Build
+        run: export RUSTFLAGS=""; cargo build --release --target wasm32-unknown-unknown
+
+      - name: Copy wasm file to web/
+        run: cp target/wasm32-unknown-unknown/release/winternight.wasm web/
+
+      - name: List web/ directory
+        run: ls web/
+
+      - name: Disable .gitignore
+        run: echo root-contents, && ls . && echo .gitignore-contents, && cat .gitignore && rm .gitignore
+
+      - name: Publish current workdir (which contains generated content) to GitHub Pages
+        uses: rayluo/github-pages-overwriter@v1.3
+
+        with:
+          source-directory: web/
+          target-branch: gh-pages
