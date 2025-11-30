@@ -98,13 +98,6 @@ impl<'a> Player<'a> {
         match self.state {
             PlayerState::Idle => {
                 let axis = get_input_axis();
-                if is_key_pressed(KeyCode::G) {
-                    self.time = 0.0;
-                    self.playing_animation = Some((
-                        assets.player.get_by_name("make hot cocoa"),
-                        Tag::CarryingCups,
-                    ))
-                }
                 if self.playing_animation.is_none() && axis != Vec2::ZERO {
                     self.direction = Direction::from_vec2(axis, self.direction.to_vec2());
                     let dir = self.direction.to_vec2();
