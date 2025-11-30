@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
 use crate::{
-    assets::Assets,
+    assets::{Animation, Assets},
     characters::{Character, any_interacting},
     utils::*,
 };
@@ -15,6 +15,7 @@ pub enum Tag {
     LightFire,
     FamilyShouldArrive,
     ChildrenWantChocolate,
+    CarryingCups,
 }
 
 #[derive(Clone, Copy)]
@@ -68,7 +69,7 @@ pub enum PlayerState {
 
 pub const MOVE_TIME: f32 = 0.25;
 
-pub struct Player {
+pub struct Player<'a> {
     pub tags: Vec<Tag>,
     pub draw_pos: Vec2,
     pub x: usize,
@@ -76,8 +77,9 @@ pub struct Player {
     pub direction: Direction,
     pub time: f32,
     pub state: PlayerState,
+    pub playing_animation: Option<(&'a Animation, Tag)>,
 }
-impl Player {
+impl<'a> Player<'a> {
     pub fn new((x, y): (usize, usize)) -> Self {
         Self {
             tags: Vec::new(),
@@ -87,15 +89,23 @@ impl Player {
             direction: Direction::Left,
             time: 0.0,
             state: PlayerState::Idle,
+            playing_animation: None,
         }
     }
-    pub fn update(&mut self, delta_time: f32, assets: &Assets, characters: &mut Vec<Character>) {
+    pub fn update(&mut self, delta_time: f32, assets: &'a Assets, characters: &mut Vec<Character>) {
         self.time += delta_time;
         let interacting_with_any = any_interacting(&characters).is_some();
         match self.state {
             PlayerState::Idle => {
                 let axis = get_input_axis();
-                if axis != Vec2::ZERO {
+                if is_key_pressed(KeyCode::G) {
+                    self.time = 0.0;
+                    self.playing_animation = Some((
+                        assets.player.get_by_name("make hot cocoa"),
+                        Tag::CarryingCups,
+                    ))
+                }
+                if self.playing_animation.is_none() && axis != Vec2::ZERO {
                     self.direction = Direction::from_vec2(axis, self.direction.to_vec2());
                     let dir = self.direction.to_vec2();
                     let new_x = self.x.saturating_add_signed(dir.x as isize);
@@ -136,24 +146,58 @@ impl Player {
             }
         }
     }
-    pub fn draw(&self, assets: &Assets, scale_factor: f32) {
+    pub fn draw(&mut self, assets: &Assets, scale_factor: f32) {
+        if let Some((animation, on_finish_tag)) = &self.playing_animation {
+            let anim = animation.get_at_time((self.time * 1000.0) as u32);
+            draw_texture_ex(
+                anim,
+                SCREEN_WIDTH * scale_factor / 2.0,
+                SCREEN_HEIGHT * scale_factor / 2.0 - 16.0 * scale_factor,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(anim.size() * scale_factor),
+                    ..Default::default()
+                },
+            );
+            if self.time * 1000.0 >= animation.total_length as f32 {
+                self.tags.push(*on_finish_tag);
+                self.playing_animation = None;
+            }
+            return;
+        }
         let anim_frame = if let PlayerState::Moving = self.state {
             (self.time * 1000.0) as u32
         } else {
             0
         };
+        let anim = assets
+            .player
+            .get_by_name(self.direction.name())
+            .get_at_time(anim_frame);
         draw_texture_ex(
-            &assets
-                .player
-                .get_by_name(self.direction.name())
-                .get_at_time(anim_frame),
+            anim,
             SCREEN_WIDTH * scale_factor / 2.0,
-            SCREEN_HEIGHT * scale_factor / 2.0,
+            SCREEN_HEIGHT * scale_factor / 2.0 - 16.0 * scale_factor,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(vec2(16.0, 16.0) * scale_factor),
+                dest_size: Some(anim.size() * scale_factor),
                 ..Default::default()
             },
         );
+        if self.tags.contains(&Tag::CarryingCups) {
+            draw_texture_ex(
+                &assets
+                    .cups
+                    .get_by_name(self.direction.name())
+                    .get_at_time(0),
+                SCREEN_WIDTH * scale_factor / 2.0,
+                SCREEN_HEIGHT * scale_factor / 2.0,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(16.0, 16.0) * scale_factor),
+                    ..Default::default()
+                },
+            );
+        }
     }
 }

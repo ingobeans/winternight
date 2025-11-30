@@ -12,7 +12,7 @@ mod utils;
 
 struct Game<'a> {
     assets: &'a Assets,
-    player: Player,
+    player: Player<'a>,
     time: f32,
     characters: Vec<Character<'a>>,
     screen: Option<usize>,
@@ -24,6 +24,7 @@ impl<'a> Game<'a> {
             player: Player::new(assets.map.special.find_tile(0)),
             time: 0.0,
             characters: vec![
+                stove(assets.map.special.find_tile(7)),
                 fireplace(assets.map.special.find_tile(3), assets),
                 door(assets.map.special.find_tile(2), assets),
                 raincoat_ferret(assets.map.special.find_tile(1), assets),
@@ -266,6 +267,11 @@ impl<'a> Game<'a> {
                     Action::ChangeAnimation(index) => {
                         character.animation_index = *index;
                         character.anim_time = 0.0;
+                    }
+                    Action::PlayPlayerAnimation(name, tag) => {
+                        self.player.time = 0.0;
+                        self.player.playing_animation =
+                            Some((self.assets.player.get_by_name(name), *tag));
                     }
                     Action::SetName(name) => character.name = name,
                     Action::SetAnimationPlaying(value) => character.animation_playing = *value,

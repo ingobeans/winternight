@@ -12,6 +12,7 @@ pub struct Assets {
     pub tileset: Spritesheet,
     pub map: Map,
     pub player: AnimationsGroup,
+    pub cups: AnimationsGroup,
     pub vision_cones: Texture2D,
     pub snow_blowing: Animation,
     pub raincoat_ferret: AnimationsGroup,
@@ -32,6 +33,7 @@ impl Assets {
             map: Map::new(include_str!("../assets/map.tmx"), &tileset),
             tileset,
             player: AnimationsGroup::from_file(include_bytes!("../assets/player.ase")),
+            cups: AnimationsGroup::from_file(include_bytes!("../assets/cups.ase")),
             vision_cones: load_ase_texture(include_bytes!("../assets/vision_cones.ase"), None),
             snow_blowing: Animation::from_file(include_bytes!("../assets/snow_blowing.ase")),
             raincoat_ferret: AnimationsGroup::from_file(include_bytes!(

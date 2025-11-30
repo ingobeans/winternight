@@ -142,6 +142,7 @@ pub enum Action {
     HideScreen,
     SetCollision(bool),
     SetName(&'static str),
+    PlayPlayerAnimation(&'static str, Tag),
     Noop,
 }
 
@@ -483,6 +484,28 @@ pub fn test_character<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charact
         x,
         y,
         draw_over: false,
+        ..BASE_CHARACTER
+    }
+}
+pub fn stove<'a>((x, y): (usize, usize)) -> Character<'a> {
+    Character {
+        draw_pos: vec2(x as f32, y as f32) * 16.0,
+        actions: vec![
+            (
+                ActionCondition::PlayerHasTag(Tag::ChildrenWantChocolate),
+                Action::Noop,
+            ),
+            (
+                ActionCondition::PlayerInteract(
+                    "E: make hot chocolate",
+                    vec2(x as f32, y as f32) * 16.0,
+                ),
+                Action::PlayPlayerAnimation("make hot cocoa", Tag::CarryingCups),
+            ),
+        ],
+        animation: None,
+        x,
+        y,
         ..BASE_CHARACTER
     }
 }
