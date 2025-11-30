@@ -567,6 +567,31 @@ pub fn draw_dialogue(text: &str, name: &str, ctx: &DrawCtx) -> bool {
             ..Default::default()
         },
     );
+    draw_rectangle(
+        x + w - 12.0 * ctx.scale_factor,
+        y + h - 10.0 * ctx.scale_factor,
+        12.0 * ctx.scale_factor,
+        nameplate_height,
+        DIALOGUE_BODY,
+    );
+    draw_rectangle_lines(
+        x + w - 12.0 * ctx.scale_factor,
+        y + h - 10.0 * ctx.scale_factor,
+        12.0 * ctx.scale_factor,
+        nameplate_height,
+        2.0 * ctx.scale_factor,
+        DIALOGUE_BORDER,
+    );
+    draw_text_ex(
+        "E",
+        x + w - 10.0 * ctx.scale_factor,
+        y + h - 3.0 * ctx.scale_factor,
+        TextParams {
+            font: Some(&ctx.assets.font),
+            font_size: (8.0 * ctx.scale_factor) as u16,
+            ..Default::default()
+        },
+    );
     is_key_pressed(KeyCode::E)
 }
 
