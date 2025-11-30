@@ -208,7 +208,7 @@ pub fn raincoat_ferret<'a>((x, y): (usize, usize), assets: &'a Assets) -> Charac
             (
                 ActionCondition::ReachedDestination,
                 Action::SetInteractMessage(Some(
-                    "If its not too much to ask, I would be\nFOREVER thankful if you'd light the fireplace.",
+                    "Could you please light the fireplace?\nI'm so cold.",
                 )),
             ),
             (
