@@ -398,6 +398,10 @@ pub fn child_ferret<'a>(assets: &'a Assets, id: usize) -> Character<'a> {
                 Action::Noop,
             ),
             (
+                ActionCondition::PlayerHasTag(Tag::CarryingCups),
+                Action::Noop,
+            ),
+            (
                 ActionCondition::PlayerNear(3.0 * 16.0),
                 Action::FadeToScreen(4),
             ),
