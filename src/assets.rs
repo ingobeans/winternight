@@ -56,6 +56,9 @@ impl Assets {
                 )),
                 Animation::from_file(include_bytes!("../assets/screens/ferret_family.ase")),
                 Animation::from_file(include_bytes!("../assets/screens/ferret_family_happy.ase")),
+                Animation::from_file(include_bytes!(
+                    "../assets/screens/child_ferrets_hot_chocolate.ase"
+                )),
             ],
         }
     }

@@ -15,7 +15,7 @@ struct Game<'a> {
     player: Player<'a>,
     time: f32,
     characters: Vec<Character<'a>>,
-    screen: Option<usize>,
+    screen: Option<(usize, f32)>,
 }
 impl<'a> Game<'a> {
     fn new(assets: &'a Assets) -> Self {
@@ -56,7 +56,9 @@ impl<'a> Game<'a> {
             assets: &self.assets,
         };
         let interacting_with_any = any_interacting(&self.characters);
-        if let Some(screen) = &self.screen {
+        if let Some((screen, time)) = &mut self.screen
+            && *time > FADE_TIME / 2.0
+        {
             let screen = &self.assets.screens[*screen];
             let size = screen.get_at_time(0).size() * scale_factor * 4.0;
             draw_texture_ex(
@@ -165,6 +167,14 @@ impl<'a> Game<'a> {
                 character.draw(self.assets, &ctx);
             }
         }
+
+        if let Some((_, time)) = &mut self.screen {
+            *time += delta_time;
+            let amt = (*time / FADE_TIME).min(1.0);
+            let amt = -4.0 * amt.powi(2) + 4.0 * amt;
+            draw_rectangle(0.0, 0.0, screen_width, screen_height, BLACK.with_alpha(amt));
+        }
+
         for character in self.characters.iter_mut() {
             character.timer += delta_time;
             let mut reached_destination = false;
@@ -226,6 +236,9 @@ impl<'a> Game<'a> {
                         false
                     }
                 }
+                ActionCondition::PlayerNear(dist) => {
+                    self.player.draw_pos.distance(character.draw_pos) <= *dist
+                }
                 ActionCondition::AlwaysChange => true,
                 ActionCondition::NeverChange => false,
                 ActionCondition::AnimationFinish => {
@@ -275,7 +288,11 @@ impl<'a> Game<'a> {
                     }
                     Action::SetName(name) => character.name = name,
                     Action::SetAnimationPlaying(value) => character.animation_playing = *value,
-                    Action::ShowScreen(index) => self.screen = Some(*index),
+                    Action::FadeToScreen(index) => {
+                        self.time = 0.0;
+                        self.screen = Some((*index, 0.0))
+                    }
+                    Action::ShowScreen(index) => self.screen = Some((*index, FADE_TIME)),
                     Action::HideScreen => self.screen = None,
                     Action::GiveTag(tag) => self.player.tags.push(*tag),
                     Action::SetAnimationTime(time) => set_time = Some(*time),

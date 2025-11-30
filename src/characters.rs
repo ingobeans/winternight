@@ -125,6 +125,7 @@ pub enum ActionCondition {
     AnimationFinish,
     Dialogue(&'static str),
     Time(f32),
+    PlayerNear(f32),
 }
 #[derive(Clone, Copy)]
 pub enum Action {
@@ -137,6 +138,7 @@ pub enum Action {
     SetAnimationPlaying(bool),
     SetAnimationTime(f32),
     ShowScreen(usize),
+    FadeToScreen(usize),
     SetInteractMessage(Option<&'static str>),
     MoveTo((usize, usize)),
     HideScreen,
@@ -348,7 +350,10 @@ pub fn child_ferret<'a>(assets: &'a Assets, id: usize) -> Character<'a> {
             ActionCondition::PlayerHasTag(Tag::ClosedDoor2),
             Action::Teleport(x - 1, y + 1),
         ),
-        // (ActionCondition::AlwaysChange, Action::Noop),
+        // (
+        //     ActionCondition::AlwaysChange,
+        //     Action::GiveTag(Tag::ChildrenWantChocolate),
+        // ),
         // (
         //     ActionCondition::AlwaysChange,
         //     Action::Teleport(x - 1, y + 1),
@@ -391,6 +396,10 @@ pub fn child_ferret<'a>(assets: &'a Assets, id: usize) -> Character<'a> {
             (
                 ActionCondition::Dialogue("We want hot chocolate!"),
                 Action::Noop,
+            ),
+            (
+                ActionCondition::PlayerNear(3.0 * 16.0),
+                Action::FadeToScreen(4),
             ),
         ];
         actions.append(&mut new);
